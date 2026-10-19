@@ -12,6 +12,7 @@ const WHATSAPP = "51904774329";
       <div class="links">
         <a href="#reservar">Reservar</a>
         <a href="#actividades">Actividades del mes</a>
+        <a href="#espacio">El espacio</a>
         <a href="#visitanos">Visítanos</a>
         <a class="btn" href="#reservar">Reservar mesa</a>
       </div>
@@ -35,7 +36,7 @@ const WHATSAPP = "51904774329";
 
     <!-- RESERVA DE MESA -->
     <section id="reservar" class="wrap">
-      <h2>Reserva tu mesa</h2>
+      <h2>Reserva tu <span class="acento">mesa</span></h2>
       <p class="sub">Completa tus datos y te confirmamos por WhatsApp. Recuerda que tienes <strong>15 minutos de tolerancia</strong> desde tu hora de reserva.</p>
       <div class="card" style="max-width: 720px; margin: 0 auto;">
         <form id="form-reserva" class="campo-grupo">
@@ -96,16 +97,35 @@ const WHATSAPP = "51904774329";
     <!-- ACTIVIDADES DEL MES -->
     <section id="actividades" style="background: var(--blanco);">
       <div class="wrap">
-        <h2>Actividades del mes ✨</h2>
+        <h2>Actividades del <span class="acento">mes</span> ✨</h2>
         <p class="sub">Talleres y experiencias con cupos limitados. ¡Aparta el tuyo antes de que se agoten!</p>
         <div id="carrusel" class="carrusel"></div>
         <p id="sin-actividades" class="sub hidden">Este mes aún no publicamos actividades. ¡Vuelve pronto! 💜</p>
       </div>
     </section>
 
+    <!-- NUESTRO ESPACIO -->
+    <section id="espacio" class="wrap">
+      <h2>Nuestro <span class="acento">espacio</span></h2>
+      <p class="sub">Un rincón cálido para crear, celebrar y compartir ☕🎨</p>
+      <div class="fila fila-2" style="align-items: center;">
+        <div class="espacio-foto">
+          <img src="/img/espacio.jpg" alt="Mesa creativa de Inspirarte Espacio" loading="lazy" />
+        </div>
+        <div>
+          <p style="font-size: 1.08rem;">Mesas listas para crear, cafecito de especialidad y un ambiente que invita a quedarse. Ya sea un taller, un cumpleaños o una tarde entre amigas, aquí cada detalle está pensado para <strong>inspirarte</strong> 💜</p>
+          <div class="chips" style="justify-content: flex-start; margin-top: 18px;">
+            <span class="chip">🌸 Detalles hechos a mano</span>
+            <span class="chip">☕ Café de especialidad</span>
+            <span class="chip">🎨 Materiales incluidos</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- VISÍTANOS -->
     <section id="visitanos" class="wrap">
-      <h2>Visítanos</h2>
+      <h2>Ven a <span class="acento">visitarnos</span></h2>
       <p class="sub">Te esperamos con un cafecito y muchas ganas de crear ☕🎨</p>
       <div class="fila fila-2" style="align-items: start;">
         <div class="card">

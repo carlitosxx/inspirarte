@@ -14,66 +14,92 @@ const { title, description = "Inspirarte Espacio — cafetería, experiencias cr
     <meta name="description" content={description} />
     <title>{title}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Rethink Sans = tipografía de texto de la marca.
+         El display usa Titan One como aproximación a "Comba Bold Ultra Wide".
+         Si tienes los archivos de Comba (.woff2), colócalos en /public/fonts/,
+         descomenta el @font-face de abajo y cambia --font-display a "Comba". -->
+    <link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&family=Titan+One&display=swap" rel="stylesheet" />
   </head>
   <body>
     <slot />
     <style is:global>
+      /*
+      @font-face {
+        font-family: "Comba";
+        src: url("/fonts/comba-bold-ultrawide.woff2") format("woff2");
+        font-weight: 700;
+      }
+      */
       :root {
-        --crema: #faf5ec;
-        --crema-2: #f3e9d8;
-        --tinta: #3d2b1f;
-        --tinta-suave: #6f5b4a;
-        --lila: #7c4dff;
-        --lila-oscuro: #5e35c4;
-        --rosa: #f9a8d4;
-        --verde: #2f9e6e;
-        --rojo: #d64545;
-        --blanco: #ffffff;
-        --radio: 18px;
-        --sombra: 0 10px 30px rgba(61, 43, 31, 0.12);
+        /* Paleta oficial Inspirarte Espacio */
+        --lavanda: #cfb3d3;      /* Lavander mist */
+        --cielo: #c2e1ef;        /* Cloudy sky */
+        --manteca: #f7e594;      /* Butter cream */
+        --periwinkle: #a0aed7;   /* Periwinkle */
+        --algodon: #e9acc7;      /* Cotton candy */
+        --crema: #f6f1de;        /* fondo */
+        --crema-2: #ece3c8;
+        --blanco: #fffdf7;
+        --tinta: #35313d;
+        --tinta-suave: #6f6880;
+        --peri-oscuro: #6f83b8;
+        --peri-mas-oscuro: #55679b;
+        --verde: #2f7d5b;
+        --rojo: #c0392b;
+        --radio: 22px;
+        --sombra: 0 12px 32px rgba(53, 49, 61, 0.10);
+        --font-display: "Titan One", "Comba", system-ui, sans-serif;
+        --font-body: "Rethink Sans", system-ui, -apple-system, sans-serif;
       }
       * { box-sizing: border-box; }
       html { scroll-behavior: smooth; }
       body {
         margin: 0;
-        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        font-family: var(--font-body);
         background: var(--crema);
         color: var(--tinta);
         line-height: 1.6;
       }
       .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
-      section { padding: 72px 0; }
-      h1, h2, h3 { line-height: 1.2; margin: 0 0 12px; }
-      h2 { font-size: clamp(1.7rem, 3.5vw, 2.4rem); text-align: center; }
-      .sub { text-align: center; color: var(--tinta-suave); max-width: 640px; margin: 0 auto 40px; }
+      section { padding: 72px 0; position: relative; }
+      h1, h2, h3 { line-height: 1.15; margin: 0 0 12px; font-family: var(--font-display); font-weight: 400; letter-spacing: .01em; }
+      h2 { font-size: clamp(1.9rem, 4vw, 2.7rem); text-align: center; }
+      h2 .acento { color: var(--peri-mas-oscuro); }
+      .sub { text-align: center; color: var(--tinta-suave); max-width: 640px; margin: 0 auto 40px; font-size: 1.05rem; }
       .btn {
         display: inline-block; border: 0; cursor: pointer;
-        background: var(--lila); color: #fff; font-weight: 700; font-size: 1rem;
+        background: var(--tinta); color: var(--crema);
+        font-family: var(--font-body); font-weight: 800; font-size: 1rem;
         padding: 14px 30px; border-radius: 999px; text-decoration: none;
-        transition: transform .15s ease, background .15s ease;
+        transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
+        box-shadow: 0 6px 18px rgba(53, 49, 61, .18);
       }
-      .btn:hover { background: var(--lila-oscuro); transform: translateY(-2px); }
-      .btn:disabled { background: #b9a8e8; cursor: not-allowed; transform: none; }
-      .btn-sec { background: var(--blanco); color: var(--lila-oscuro); border: 2px solid var(--lila); }
-      .btn-sec:hover { background: var(--lila); color: #fff; }
+      .btn:hover { background: var(--peri-mas-oscuro); color: #fff; transform: translateY(-2px); }
+      .btn:disabled { background: #b9b3c9; cursor: not-allowed; transform: none; box-shadow: none; }
+      .btn-sec { background: var(--blanco); color: var(--peri-mas-oscuro); border: 2px solid var(--periwinkle); box-shadow: none; }
+      .btn-sec:hover { background: var(--periwinkle); border-color: var(--periwinkle); color: var(--tinta); }
       .card {
         background: var(--blanco); border-radius: var(--radio);
         box-shadow: var(--sombra); padding: 28px;
+        border: 1px solid rgba(160, 174, 215, .25);
       }
       form.campo-grupo { display: grid; gap: 16px; }
-      label { font-weight: 600; font-size: .95rem; display: block; margin-bottom: 6px; }
+      label { font-weight: 700; font-size: .95rem; display: block; margin-bottom: 6px; }
       input, select, textarea {
         width: 100%; padding: 12px 14px; font-size: 1rem;
-        border: 2px solid var(--crema-2); border-radius: 12px;
+        border: 2px solid var(--crema-2); border-radius: 14px;
         background: #fff; color: var(--tinta); font-family: inherit;
       }
       input:focus, select:focus, textarea:focus {
-        outline: none; border-color: var(--lila);
+        outline: none; border-color: var(--periwinkle);
+        box-shadow: 0 0 0 3px rgba(160, 174, 215, .25);
       }
       .fila { display: grid; gap: 16px; grid-template-columns: 1fr; }
       @media (min-width: 640px) { .fila-2 { grid-template-columns: 1fr 1fr; } .fila-3 { grid-template-columns: 1fr 1fr 1fr; } }
-      .alerta { border-radius: 12px; padding: 14px 18px; margin-top: 18px; font-weight: 600; }
-      .alerta.ok { background: #e6f7ee; color: #1d6b44; border: 1px solid #bfe8d2; }
+      .alerta { border-radius: 14px; padding: 14px 18px; margin-top: 18px; font-weight: 600; }
+      .alerta.ok { background: #e3f3ea; color: #1d6b44; border: 1px solid #bfe8d2; }
       .alerta.error { background: #fdecec; color: #a02c2c; border: 1px solid #f5c6c6; }
       .nota { font-size: .9rem; color: var(--tinta-suave); }
       /* Carrusel de actividades */
@@ -85,43 +111,62 @@ const { title, description = "Inspirarte Espacio — cafetería, experiencias cr
         flex: 0 0 300px; scroll-snap-align: start;
         background: var(--blanco); border-radius: var(--radio);
         box-shadow: var(--sombra); overflow: hidden; display: flex; flex-direction: column;
+        border: 1px solid rgba(160, 174, 215, .25);
       }
-      .actividad img { width: 100%; height: 180px; object-fit: cover; background: var(--crema-2); }
+      .actividad img { width: 100%; height: 180px; object-fit: cover; background: var(--cielo); }
       .actividad .cuerpo { padding: 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-      .actividad .precio { font-size: 1.25rem; font-weight: 800; color: var(--lila-oscuro); }
-      .cupos { font-weight: 700; }
+      .actividad .precio { font-size: 1.3rem; font-weight: 800; color: var(--peri-mas-oscuro); }
+      .cupos { font-weight: 800; }
       .cupos.quedan { color: var(--verde); }
       .cupos.agotados { color: var(--rojo); }
       .mini-form { display: grid; gap: 10px; margin-top: 10px; }
       /* Header */
       header.top {
         position: sticky; top: 0; z-index: 50;
-        background: rgba(250, 245, 236, .92); backdrop-filter: blur(8px);
+        background: rgba(246, 241, 222, .92); backdrop-filter: blur(8px);
         border-bottom: 1px solid var(--crema-2);
       }
       header.top nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; max-width: 1120px; margin: 0 auto; }
-      header.top .logo { font-weight: 800; font-size: 1.25rem; text-decoration: none; color: var(--tinta); }
-      header.top .logo span { color: var(--lila); }
+      header.top .logo { font-family: var(--font-display); font-size: 1.4rem; text-decoration: none; color: var(--tinta); }
+      header.top .logo span { color: var(--peri-mas-oscuro); }
       header.top .links { display: flex; gap: 18px; align-items: center; }
-      header.top .links a:not(.btn) { color: var(--tinta); text-decoration: none; font-weight: 600; }
-      header.top .links a:not(.btn):hover { color: var(--lila-oscuro); }
+      header.top .links a:not(.btn) { color: var(--tinta); text-decoration: none; font-weight: 700; }
+      header.top .links a:not(.btn):hover { color: var(--peri-mas-oscuro); }
       @media (max-width: 640px) { header.top .links a:not(.btn) { display: none; } }
-      .hero { text-align: center; padding: 90px 0 60px; }
-      .hero h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); }
-      .hero h1 em { color: var(--lila); font-style: normal; }
-      .hero p { color: var(--tinta-suave); max-width: 620px; margin: 0 auto 28px; font-size: 1.1rem; }
+      /* Hero */
+      .hero { text-align: center; padding: 90px 0 60px; overflow: hidden; }
+      .hero::before, .hero::after {
+        content: ""; position: absolute; border-radius: 50%; filter: blur(70px); opacity: .55; z-index: -1;
+      }
+      .hero::before { width: 420px; height: 420px; background: var(--lavanda); top: -120px; left: -100px; }
+      .hero::after { width: 460px; height: 460px; background: var(--cielo); bottom: -160px; right: -120px; }
+      .hero h1 { font-size: clamp(2.4rem, 6vw, 4rem); }
+      .hero h1 em { color: var(--peri-mas-oscuro); font-style: normal; }
+      .hero p { color: var(--tinta-suave); max-width: 620px; margin: 0 auto 28px; font-size: 1.12rem; }
       .chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 26px; }
-      .chip { background: var(--blanco); border: 1px solid var(--crema-2); border-radius: 999px; padding: 8px 16px; font-size: .9rem; font-weight: 600; }
+      .chip { border-radius: 999px; padding: 8px 18px; font-size: .92rem; font-weight: 700; border: 1px solid rgba(53,49,61,.08); }
+      .chip:nth-child(5n+1) { background: var(--lavanda); }
+      .chip:nth-child(5n+2) { background: var(--cielo); }
+      .chip:nth-child(5n+3) { background: var(--manteca); }
+      .chip:nth-child(5n+4) { background: var(--algodon); }
+      .chip:nth-child(5n+5) { background: var(--periwinkle); color: #fff; }
+      /* Foto del espacio */
+      .espacio-foto {
+        border-radius: var(--radio); overflow: hidden; box-shadow: var(--sombra);
+        border: 6px solid var(--blanco); transform: rotate(-1.5deg);
+      }
+      .espacio-foto img { display: block; width: 100%; height: auto; }
       footer { background: var(--tinta); color: #f5efe4; padding: 44px 0; margin-top: 40px; }
-      footer a { color: var(--rosa); }
+      footer a { color: var(--algodon); }
+      footer strong { font-family: var(--font-display); font-weight: 400; font-size: 1.2rem; }
       .horario { display: grid; gap: 8px; margin: 18px 0; }
-      .horario div { display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,.2); padding-bottom: 8px; }
+      .horario div { display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(53,49,61,.18); padding-bottom: 8px; }
       table.admin { width: 100%; border-collapse: collapse; font-size: .92rem; }
       table.admin th, table.admin td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--crema-2); }
       table.admin th { color: var(--tinta-suave); font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; }
       .tabs { display: flex; gap: 10px; margin: 26px 0; flex-wrap: wrap; }
-      .tab { border: 2px solid var(--crema-2); background: #fff; border-radius: 999px; padding: 10px 22px; font-weight: 700; cursor: pointer; }
-      .tab.activo { background: var(--lila); border-color: var(--lila); color: #fff; }
+      .tab { border: 2px solid var(--crema-2); background: var(--blanco); border-radius: 999px; padding: 10px 22px; font-weight: 800; font-family: inherit; cursor: pointer; color: var(--tinta); }
+      .tab.activo { background: var(--tinta); border-color: var(--tinta); color: var(--crema); }
       .hidden { display: none !important; }
     </style>
   </body>
