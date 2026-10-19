@@ -44,4 +44,10 @@ cd web && npm install && npm run dev
 
 ## Deploy (Coolify)
 
-Un solo recurso **Docker Compose** apuntando a este repo, rama `main`, archivo `docker-compose.yml`. Ver variables en `.env.example`. Cada push a `main` redespliega automáticamente (webhook de GitHub → Coolify).
+Un solo recurso **Docker Compose** apuntando a este repo, rama `main`, archivo `docker-compose.prod.yml`. El archivo `docker-compose.yml` sigue siendo para desarrollo local.
+
+En Coolify, configurar `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` y `PUBLIC_API_URL`. Usar una contraseña hexadecimal aleatoria para Postgres, ya que se incluye en la URL interna de conexión. El compose de producción construye `DATABASE_URL` con esas variables, exige secretos y conserva Postgres en el volumen `pgdata`.
+
+Dominios de producción: `https://inspirarteperu.com:80` y `https://www.inspirarteperu.com:80` para `web`, y `https://api.inspirarteperu.com:8080` para `backend`. En Coolify el puerto indica el destino interno del proxy; las URLs públicas usan HTTPS estándar. `PUBLIC_API_URL=https://api.inspirarteperu.com` se integra al compilar la web, por lo que cambiarla requiere reconstruirla.
+
+El despliegue automático requiere configurar el webhook de GitHub en Coolify.
