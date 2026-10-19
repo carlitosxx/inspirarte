@@ -1,0 +1,256 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
+const WHATSAPP = "51904774329";
+---
+
+<Layout title="Inspirarte Espacio — Cafetería & Experiencias Creativas">
+  <header class="top">
+    <nav>
+      <a class="logo" href="#inicio">Inspirarte <span>Espacio</span> 💜</a>
+      <div class="links">
+        <a href="#reservar">Reservar</a>
+        <a href="#actividades">Actividades del mes</a>
+        <a href="#visitanos">Visítanos</a>
+        <a class="btn" href="#reservar">Reservar mesa</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="inicio">
+    <!-- HERO -->
+    <section class="hero wrap">
+      <h1>Un espacio para <em>inspirarte</em> ✨</h1>
+      <p>Cafetería, experiencias creativas, talleres y celebraciones. Reserva tu mesa o aparta tu cupo en nuestras actividades del mes.</p>
+      <a class="btn" href="#reservar">Reservar mi mesa 💜</a>
+      <div class="chips">
+        <span class="chip">☕ Cafetería</span>
+        <span class="chip">🎨 Experiencias creativas</span>
+        <span class="chip">🛠️ Talleres</span>
+        <span class="chip">🎂 Celebraciones</span>
+        <span class="chip">👥 Reservas grupales</span>
+      </div>
+    </section>
+
+    <!-- RESERVA DE MESA -->
+    <section id="reservar" class="wrap">
+      <h2>Reserva tu mesa</h2>
+      <p class="sub">Completa tus datos y te confirmamos por WhatsApp. Recuerda que tienes <strong>15 minutos de tolerancia</strong> desde tu hora de reserva.</p>
+      <div class="card" style="max-width: 720px; margin: 0 auto;">
+        <form id="form-reserva" class="campo-grupo">
+          <div>
+            <label for="nombre">Nombre completo</label>
+            <input id="nombre" name="nombre" required maxlength="120" placeholder="Ej. María Fernández" />
+          </div>
+          <div class="fila fila-2">
+            <div>
+              <label for="whatsapp">Número de contacto / WhatsApp</label>
+              <input id="whatsapp" name="whatsapp" required maxlength="30" placeholder="Ej. 987 654 321" />
+            </div>
+            <div>
+              <label for="personas">Número de personas</label>
+              <input id="personas" name="personas" type="number" min="1" max="60" required value="2" />
+            </div>
+          </div>
+          <div class="fila fila-2">
+            <div>
+              <label for="fecha">Fecha de reserva</label>
+              <input id="fecha" name="fecha" type="date" required />
+            </div>
+            <div>
+              <label for="hora">Hora de reserva</label>
+              <input id="hora" name="hora" type="time" required />
+            </div>
+          </div>
+          <div>
+            <label for="ubicacion">Preferencia de ubicación</label>
+            <select id="ubicacion" name="ubicacion" required>
+              <option value="salon">Mesa en salón</option>
+              <option value="mampara">Mesa junto a la mampara (máx. 2 personas)</option>
+              <option value="barra">Barra junto a la ventana</option>
+            </select>
+          </div>
+          <div>
+            <label for="motivo">¿Cuál es el motivo de tu visita? ✨</label>
+            <select id="motivo" name="motivo" required>
+              <option value="cafeteria">☕ Visita a la cafetería</option>
+              <option value="cumpleanos">🎂 Cumpleaños</option>
+              <option value="aniversario">💛 Aniversario</option>
+              <option value="reunion">👥 Reunión o encuentro</option>
+              <option value="experiencia">🎨 Experiencia creativa</option>
+              <option value="otro">Otra (cuéntanos abajo)</option>
+            </select>
+          </div>
+          <div id="motivo-detalle-wrap" class="hidden">
+            <label for="motivo_detalle">Cuéntanos el motivo de tu visita para recibirte mejor 💜</label>
+            <textarea id="motivo_detalle" name="motivo_detalle" rows="2" maxlength="300"></textarea>
+          </div>
+          <button class="btn" type="submit" id="btn-reservar">Confirmar reserva</button>
+          <p class="nota">⏱️ Tolerancia de llegada: 15 minutos. Pasado ese tiempo, si no te comunicas con nosotros, la reserva puede liberarse.</p>
+          <div id="msg-reserva"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ACTIVIDADES DEL MES -->
+    <section id="actividades" style="background: var(--blanco);">
+      <div class="wrap">
+        <h2>Actividades del mes ✨</h2>
+        <p class="sub">Talleres y experiencias con cupos limitados. ¡Aparta el tuyo antes de que se agoten!</p>
+        <div id="carrusel" class="carrusel"></div>
+        <p id="sin-actividades" class="sub hidden">Este mes aún no publicamos actividades. ¡Vuelve pronto! 💜</p>
+      </div>
+    </section>
+
+    <!-- VISÍTANOS -->
+    <section id="visitanos" class="wrap">
+      <h2>Visítanos</h2>
+      <p class="sub">Te esperamos con un cafecito y muchas ganas de crear ☕🎨</p>
+      <div class="fila fila-2" style="align-items: start;">
+        <div class="card">
+          <h3>🕒 Horario de atención</h3>
+          <div class="horario" style="color: var(--tinta);">
+            <div><span>Lunes a viernes</span><strong>5:00 p. m. – 10:00 p. m.</strong></div>
+            <div><span>Sábados</span><strong>10:00 a. m. – 10:00 p. m.</strong></div>
+            <div><span>Domingos</span><strong>Con reserva previa*</strong></div>
+          </div>
+          <p class="nota">*Domingos: atención únicamente con reserva previa para grupos o celebraciones especiales.</p>
+        </div>
+        <div class="card">
+          <h3>💬 Escríbenos</h3>
+          <p>¿Dudas sobre tu reserva o una celebración especial?</p>
+          <p style="font-size: 1.4rem; font-weight: 800;">📱 904 774 329</p>
+          <a class="btn btn-sec" href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent("Hola Inspirarte Espacio 💜, quiero hacer una reserva")}`} target="_blank" rel="noopener">WhatsApp directo</a>
+          <h3 style="margin-top: 28px;">⏳ Tiempos de permanencia</h3>
+          <p class="nota">
+            Reserva regular de cafetería: hasta 2 horas y 30 minutos.<br />
+            Celebraciones: hasta 3 horas.<br />
+            Experiencias o talleres: según la duración programada.<br />
+            El tiempo máximo aplica principalmente cuando exista otra reserva posterior.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap" style="display:flex; justify-content: space-between; flex-wrap: wrap; gap: 18px; align-items: center;">
+      <div><strong>Inspirarte Espacio</strong> 💜<br /><span class="nota" style="color:#cbbfae;">Cafetería · Experiencias creativas · Talleres · Celebraciones</span></div>
+      <div><a href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noopener">WhatsApp 904 774 329</a></div>
+    </div>
+  </footer>
+
+  <script define:vars={{ API }}>
+    const api = API.replace(/\/$/, "");
+    const fmtFecha = (iso) => new Date(iso).toLocaleString("es-PE", { dateStyle: "medium", timeStyle: "short" });
+    const money = (n) => "S/ " + Number(n).toFixed(2);
+
+    // Mostrar/ocultar detalle de motivo
+    const motivoSel = document.getElementById("motivo");
+    const detalleWrap = document.getElementById("motivo-detalle-wrap");
+    motivoSel.addEventListener("change", () => {
+      detalleWrap.classList.toggle("hidden", motivoSel.value !== "otro");
+    });
+
+    // Fecha mínima = hoy
+    document.getElementById("fecha").min = new Date().toISOString().slice(0, 10);
+
+    function alerta(el, tipo, texto) {
+      el.innerHTML = `<div class="alerta ${tipo}">${texto}</div>`;
+    }
+
+    // ---- Reserva de mesa ----
+    document.getElementById("form-reserva").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("btn-reservar");
+      const msg = document.getElementById("msg-reserva");
+      btn.disabled = true;
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      data.personas = Number(data.personas);
+      try {
+        const r = await fetch(api + "/api/reservations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || "No se pudo registrar la reserva");
+        alerta(msg, "ok", `✅ ${j.mensaje}<br><span class="nota">⏱️ Recuerda: tienes 15 minutos de tolerancia desde las ${data.hora}; pasado ese tiempo, si no te comunicas, la mesa puede liberarse.</span>`);
+        e.target.reset();
+        detalleWrap.classList.add("hidden");
+      } catch (err) {
+        alerta(msg, "error", "⚠️ " + err.message);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // ---- Actividades del mes ----
+    async function cargarActividades() {
+      const carrusel = document.getElementById("carrusel");
+      try {
+        const r = await fetch(api + "/api/activities");
+        const acts = await r.json();
+        if (!acts.length) {
+          document.getElementById("sin-actividades").classList.remove("hidden");
+          return;
+        }
+        carrusel.innerHTML = acts.map((a) => `
+          <article class="actividad" data-id="${a.id}">
+            ${a.imagen_url ? `<img src="${a.imagen_url}" alt="${a.titulo}" loading="lazy" />` : ""}
+            <div class="cuerpo">
+              <h3>${a.titulo}</h3>
+              <div class="nota">📅 ${fmtFecha(a.fecha_hora)}</div>
+              ${a.descripcion ? `<p class="nota">${a.descripcion}</p>` : ""}
+              <div class="precio">${money(a.precio)}</div>
+              <div class="cupos ${a.agotado ? "agotados" : "quedan"}">
+                ${a.agotado ? "Cupos agotados ✨" : `🎟️ ${a.cupos_disponibles} cupos disponibles`}
+              </div>
+              ${a.agotado ? "" : `
+                <button class="btn btn-sec btn-apartar" type="button">Reservar mi cupo 💜</button>
+                <form class="mini-form hidden">
+                  <input name="nombre" required maxlength="120" placeholder="Nombre completo" />
+                  <input name="whatsapp" required maxlength="30" placeholder="WhatsApp" />
+                  <div style="display:flex; gap:10px; align-items:center;">
+                    <input name="cupos" type="number" min="1" max="${a.cupos_disponibles}" value="1" style="max-width: 90px;" />
+                    <button class="btn" type="submit" style="padding: 10px 18px;">Apartar</button>
+                  </div>
+                  <div class="msg-cupos"></div>
+                </form>`}
+            </div>
+          </article>`).join("");
+
+        carrusel.querySelectorAll(".actividad").forEach((card) => {
+          const btn = card.querySelector(".btn-apartar");
+          if (!btn) return;
+          const form = card.querySelector(".mini-form");
+          btn.addEventListener("click", () => form.classList.toggle("hidden"));
+          form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const msg = card.querySelector(".msg-cupos");
+            const data = Object.fromEntries(new FormData(form).entries());
+            data.cupos = Number(data.cupos) || 1;
+            try {
+              const r = await fetch(api + "/api/activities/" + card.dataset.id + "/book", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+              });
+              const j = await r.json();
+              if (!r.ok) throw new Error(j.error || "No se pudo apartar tu cupo");
+              alerta(msg, "ok", `✅ ¡Cupo apartado! 💜 Quedan ${j.cupos_restantes} disponibles. Te escribiremos por WhatsApp para confirmar.`);
+              form.reset();
+              setTimeout(cargarActividades, 1500);
+            } catch (err) {
+              alerta(msg, "error", "⚠️ " + err.message);
+            }
+          });
+        });
+      } catch {
+        carrusel.innerHTML = `<p class="sub">No pudimos cargar las actividades por ahora. Escríbenos al WhatsApp 904 774 329 💜</p>`;
+      }
+    }
+    cargarActividades();
+  </script>
+</Layout>
