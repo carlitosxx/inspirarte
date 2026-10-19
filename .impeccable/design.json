@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-19T18:50:00-05:00",
+  "title": "Design System: Inspirarte Espacio",
+  "extensions": {
+    "colorMeta": {
+      "ink": { "role": "primary", "displayName": "Ciruela tinta" },
+      "paper": { "role": "neutral", "displayName": "Papel crema" },
+      "butter": { "role": "accent", "displayName": "Amarillo manteca" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Fraunces", "purpose": "Titulares y frases expresivas." },
+      "body": { "displayName": "DM Sans", "purpose": "Navegación, formularios y lectura." }
+    },
+    "shadows": [
+      { "name": "paper-raised", "value": "0 28px 70px rgba(57,30,63,.12)", "purpose": "Formulario de reserva sobre lavanda." }
+    ],
+    "motion": [
+      { "name": "control", "value": "200ms ease", "purpose": "Hover y foco en controles." }
+    ],
+    "breakpoints": [
+      { "name": "tablet", "value": "800px" },
+      { "name": "mobile", "value": "640px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botón principal", "kind": "button", "refersTo": "button-primary",
+      "description": "Acción principal sobre fondo claro.",
+      "html": "<button class=\"ds-btn-primary\">Reservar mesa</button>",
+      "css": ".ds-btn-primary{border:1px solid #33243b;border-radius:100px;background:#33243b;color:#fffaf4;padding:12px 24px;font:700 16px 'DM Sans',sans-serif;cursor:pointer;transition:background .2s ease,transform .2s ease}.ds-btn-primary:hover{background:#49305a;transform:translateY(-2px)}.ds-btn-primary:focus-visible{outline:3px solid #9464ad;outline-offset:3px}"
+    },
+    {
+      "name": "Botón hero", "kind": "button", "refersTo": "button-hero",
+      "description": "Reserva destacada sobre ciruela.",
+      "html": "<button class=\"ds-btn-hero\">Quiero reservar una mesa ↗</button>",
+      "css": ".ds-btn-hero{border:1px solid #f4d58a;border-radius:100px;background:#f4d58a;color:#33243b;padding:12px 24px;font:700 16px 'DM Sans',sans-serif;cursor:pointer;transition:background .2s ease,transform .2s ease}.ds-btn-hero:hover{background:#ffe3a3;transform:translateY(-2px)}.ds-btn-hero:focus-visible{outline:3px solid #9464ad;outline-offset:3px}"
+    },
+    {
+      "name": "Campo", "kind": "input", "refersTo": "input",
+      "description": "Campo de reserva con etiqueta persistente.",
+      "html": "<label class=\"ds-label\">Nombre completo<input class=\"ds-input\" placeholder=\"Tu nombre\"></label>",
+      "css": ".ds-label{display:grid;gap:7px;color:#33243b;font:700 14px 'DM Sans',sans-serif}.ds-input{min-height:48px;padding:11px 14px;border:1px solid #cbbecb;border-radius:9px;background:#fff;color:#33243b;font:400 16px 'DM Sans',sans-serif}.ds-input:focus-visible{outline:2px solid #9464ad;outline-offset:1px}"
+    },
+    {
+      "name": "Panel de papel", "kind": "card",
+      "description": "Superficie elevada para formularios.",
+      "html": "<div class=\"ds-paper\">Reserva tu mesa</div>",
+      "css": ".ds-paper{max-width:320px;padding:32px;border-radius:16px;background:#fffaf4;color:#33243b;box-shadow:0 28px 70px rgba(57,30,63,.12);font:600 28px Fraunces,serif}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Taller editorial",
+    "overview": "Una invitación a sentarse a crear, con papel cálido, tipografía expresiva y una ruta directa a reservar una mesa.",
+    "keyCharacteristics": ["cálido", "táctil", "editorial", "claro"],
+    "rules": [
+      { "name": "Primero la reserva", "body": "La acción de reservar aparece en la primera pantalla y junto a la información útil.", "section": "components" },
+      { "name": "Imagen honesta", "body": "Las imágenes creadas de ambiente se identifican como ilustrativas.", "section": "components" }
+    ],
+    "dos": ["Usar contraste ciruela y crema para la lectura.", "Mantener etiquetas visibles en los formularios."],
+    "donts": ["No presentar imágenes ilustrativas como fotos del local.", "No usar emojis como sistema de iconos."]
+  }
+}
