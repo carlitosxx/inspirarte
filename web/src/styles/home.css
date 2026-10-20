@@ -219,3 +219,25 @@ section[id] { scroll-margin-top: 86px; }
   .mini-form input { transition: border-color 160ms ease, background-color 160ms ease; }
   .mini-form input:focus { background: #fffdf9; }
 }
+
+.instagram-section { background: #faf7f2; border-top: 1px solid #e7dfd6; }
+.instagram-wrap { max-width: 900px; text-align: center; }
+.instagram-section h2 { font-size: clamp(2.8rem, 5vw, 4.5rem); line-height: 1.08; }
+.instagram-section h2 em { color: #586c53; font-weight: 500; }
+.instagram-intro { margin: 26px auto 42px; color: var(--tinta-suave); line-height: 1.8; }
+.instagram-intro a { color: inherit; text-underline-offset: 4px; }
+.instagram-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.instagram-post { position: relative; display: block; aspect-ratio: 1; overflow: hidden; background: #e8dfd4; }
+.instagram-post img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 350ms cubic-bezier(.16,1,.3,1); }
+.instagram-post-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #fffaf4; background: rgba(34,24,39,.68); opacity: 0; transition: opacity 200ms ease; font-size: .87rem; font-weight: 700; }
+.instagram-post-overlay svg { width: 32px; height: 32px; }
+.instagram-post:hover img, .instagram-post:focus-visible img { transform: scale(1.04); }
+.instagram-post:hover .instagram-post-overlay, .instagram-post:focus-visible .instagram-post-overlay { opacity: 1; }
+.instagram-post:focus-visible { outline: 3px solid var(--ciruela); outline-offset: 4px; }
+.instagram-profile { margin-top: 34px; padding-inline: 30px; }
+@media (max-width: 640px) {
+  .instagram-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .instagram-intro { margin: 22px auto 30px; font-size: .92rem; }
+  .instagram-profile { margin-top: 28px; }
+}
+@media (prefers-reduced-motion: reduce) { .instagram-post img { transition: none; } .instagram-post:hover img, .instagram-post:focus-visible img { transform: none; } }
