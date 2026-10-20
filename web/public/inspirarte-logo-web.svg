@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="125" viewBox="0 0 760 125" role="img" aria-labelledby="title desc">
+<title id="title">inspirarte espacio.</title>
+<desc id="desc">Logotipo horizontal vectorial de Inspirarte Espacio en morado y lavanda, con detalles pastel.</desc>
+<g transform="translate(9 10)">
+<path d="M18 28 C1 14 5 1 17 4 C28 7 29 20 22 31Z" fill="#F7E594"/>
+<path d="M25 26 C19 7 29 -1 40 4 C51 12 40 25 29 31Z" fill="#CFB3D3"/>
+<path d="M32 31 C40 15 55 15 57 27 C57 39 42 42 32 35Z" fill="#E9ACC7"/>
+<circle cx="27" cy="35" r="5" fill="#322239"/>
+</g>
+<text x="12" y="95" fill="#322239" font-family="Georgia, 'Times New Roman', serif" font-size="65" font-weight="bold" letter-spacing="-3">inspirarte</text>
+<text x="343" y="95" fill="#9C78B3" font-family="Georgia, 'Times New Roman', serif" font-size="65" font-weight="bold" letter-spacing="-3"> espacio</text>
+<circle cx="694" cy="86" r="7" fill="#F7E594"/>
+</svg>
