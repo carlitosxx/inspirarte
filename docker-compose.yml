@@ -23,6 +23,8 @@ services:
       PORT: 8080
     ports:
       - "8080:8080"
+    volumes:
+      - uploads:/data/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -39,3 +41,4 @@ services:
 
 volumes:
   pgdata:
+  uploads:

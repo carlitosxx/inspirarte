@@ -9,6 +9,7 @@ type Config struct {
 	JWTSecret   string
 	AdminEmail  string
 	AdminPass   string
+	UploadDir   string
 }
 
 func Load() Config {
@@ -18,6 +19,7 @@ func Load() Config {
 		JWTSecret:   env("JWT_SECRET", "cambia-esto-en-produccion"),
 		AdminEmail:  env("ADMIN_EMAIL", "admin@inspirarte.local"),
 		AdminPass:   env("ADMIN_PASSWORD", "admin123"),
+		UploadDir:   env("UPLOAD_DIR", "/data/uploads"),
 	}
 }
 

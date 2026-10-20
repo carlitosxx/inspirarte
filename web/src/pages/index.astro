@@ -295,7 +295,7 @@ const WHATSAPP = "51904774329";
         }
         carrusel.innerHTML = acts.map((a) => `
           <article class="actividad" data-id="${escapeHtml(a.id)}">
-            ${a.imagen_url ? `<img src="${escapeHtml(a.imagen_url)}" alt="${escapeHtml(a.titulo)}" loading="lazy" />` : ""}
+            ${a.imagen_url ? `<img src="${escapeHtml(a.imagen_url.startsWith("/media/activities/") ? api + a.imagen_url : a.imagen_url)}" alt="${escapeHtml(a.titulo)}" loading="lazy" />` : ""}
             <div class="cuerpo">
               <h3>${escapeHtml(a.titulo)}</h3>
               <div class="nota">${escapeHtml(fmtFecha(a.fecha_hora))}</div>

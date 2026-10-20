@@ -46,6 +46,10 @@ cd web && npm install && npm run dev
 
 En `/admin`, la pestaña **Mensaje de WhatsApp** permite editar y guardar el texto usado por el botón **Escribir** de cada reserva. Se puede combinar texto libre con variables como `{nombre}`, `{fecha}`, `{hora}`, `{personas}`, `{ubicacion}`, `{motivo}`, `{motivo_detalle}`, `{duracion}`, `{estado}`, `{whatsapp}`, `{id}` y `{creada_el}`. Los botones de variables las insertan en la posición del cursor y la vista previa muestra una reserva real cuando existe. Los cambios se guardan en PostgreSQL y se aplican a todas las reservas al pulsar **Guardar mensaje**. El botón abre WhatsApp con el texto preparado; el envío final lo realiza el administrador.
 
+## Imágenes de actividades
+
+El administrador puede cargar JPG, PNG, WebP o AVIF de hasta 20 MB y ajustar un recorte fijo 4:5 con arrastre, zoom y controles accesibles. Al guardar la actividad, el navegador envía únicamente el recorte de 1080 × 1350 píxeles. La API autenticada valida las dimensiones, vuelve a codificar los píxeles y los convierte a AVIF con `avifenc` (incluido en la imagen Docker). Los archivos se sirven desde `/media/activities/` y se conservan en el volumen Docker `uploads`, montado en `/data/uploads`. `UPLOAD_DIR` permite cambiar esa carpeta en ejecuciones fuera de Docker. El volumen debe incluirse en los respaldos junto con PostgreSQL.
+
 ## Deploy (Coolify)
 
 Un solo recurso **Docker Compose** apuntando a este repo, rama `main`, archivo `docker-compose.prod.yml`. El archivo `docker-compose.yml` sigue siendo para desarrollo local.

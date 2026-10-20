@@ -39,6 +39,7 @@ func main() {
 	r.Use(cors)
 
 	r.Get("/health", h.Health)
+	r.Get("/media/activities/{file}", h.ActivityImage)
 	r.Route("/api", func(r chi.Router) {
 		// Público
 		r.Get("/activities", h.ListActivities)
@@ -55,6 +56,7 @@ func main() {
 			r.Put("/admin/whatsapp-template", h.AdminSaveWhatsAppTemplate)
 			r.Get("/admin/activities", h.AdminListActivities)
 			r.Post("/admin/activities", h.AdminCreateActivity)
+			r.Post("/admin/activity-images", h.AdminUploadActivityImage)
 			r.Patch("/admin/activities/{id}", h.AdminUpdateActivity)
 			r.Delete("/admin/activities/{id}", h.AdminDeleteActivity)
 		})
