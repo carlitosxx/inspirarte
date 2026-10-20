@@ -116,3 +116,8 @@
  body.admin-menu-open { overflow:hidden; }
 }
 @media(prefers-reduced-motion:reduce) { #panel > .admin-sidebar { transition:none; } }
+
+.gallery-delete { justify-self:center; padding:10px 14px; border:0; background:transparent; color:#9a343f; font:600 .88rem var(--font-body); cursor:pointer; text-decoration:underline; text-underline-offset:4px; }
+.gallery-delete:hover {color:#73232d;}
+.gallery-delete:focus-visible {outline:2px solid #9a343f;outline-offset:3px;}
+.gallery-delete:disabled {opacity:.5;cursor:wait;}

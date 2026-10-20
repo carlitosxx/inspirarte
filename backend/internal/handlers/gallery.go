@@ -84,3 +84,17 @@ func (h *Handler) saveGallery(w http.ResponseWriter, r *http.Request, create boo
 	}
 	writeJSON(w, 200, map[string]bool{"ok": true})
 }
+
+// Remove the gallery entry; uploaded media may also be referenced by another entry.
+func (h *Handler) AdminDeleteGallery(w http.ResponseWriter, r *http.Request) {
+	result, err := h.DB.ExecContext(r.Context(), `DELETE FROM gallery_images WHERE id=$1`, chi.URLParam(r, "id"))
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "No se pudo eliminar la foto")
+		return
+	}
+	if n, _ := result.RowsAffected(); n == 0 {
+		writeError(w, http.StatusNotFound, "Foto no encontrada")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
+}

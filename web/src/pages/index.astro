@@ -316,7 +316,7 @@ const WHATSAPP = "51904774329";
         const track = document.getElementById("photo-gallery-track");
         const section = document.getElementById("galeria");
         section.classList.remove("hidden");
-        const photoMarkup = photo => `<figure><img src="${escapeHtml(api + photo.imagen_url)}" alt="${escapeHtml(photo.descripcion)}" loading="lazy" decoding="async" /></figure>`;
+        const photoMarkup = photo => `<figure><img src="${escapeHtml(api + photo.imagen_url)}" alt="${escapeHtml(photo.descripcion || "Fotografía de Inspirarte")}" loading="lazy" decoding="async" /></figure>`;
         const unique = photos.map(photoMarkup).join("");
         const repetitions = Math.max(1, Math.ceil((Math.max(window.innerWidth, window.screen.width, 2560) + 400) / (photos.length * 220)));
         const filled = unique + Array.from({length: repetitions - 1}, () => `<div class="gallery-fill" aria-hidden="true">${unique}</div>`).join("");

@@ -60,6 +60,7 @@ func main() {
 			r.Get("/admin/gallery", h.AdminListGallery)
 			r.Post("/admin/gallery", h.AdminCreateGallery)
 			r.Patch("/admin/gallery/{id}", h.AdminUpdateGallery)
+			r.Delete("/admin/gallery/{id}", h.AdminDeleteGallery)
 			r.Post("/admin/gallery-images", h.AdminUploadGalleryImage)
 			r.Get("/admin/activities", h.AdminListActivities)
 			r.Post("/admin/activities", h.AdminCreateActivity)
