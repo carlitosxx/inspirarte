@@ -51,3 +51,5 @@ En Coolify, configurar `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `JWT
 Dominios de producción: `https://inspirarteperu.com:80` y `https://www.inspirarteperu.com:80` para `web`, y `https://api.inspirarteperu.com:8080` para `backend`. En Coolify el puerto indica el destino interno del proxy; las URLs públicas usan HTTPS estándar. `PUBLIC_API_URL=https://api.inspirarteperu.com` se integra al compilar la web, por lo que cambiarla requiere reconstruirla.
 
 El despliegue automático requiere configurar el webhook de GitHub en Coolify.
+
+-ss
