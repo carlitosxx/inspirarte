@@ -298,14 +298,14 @@ const WHATSAPP = "51904774329";
             ${a.imagen_url ? `<img src="${escapeHtml(a.imagen_url.startsWith("/media/activities/") ? api + a.imagen_url : a.imagen_url)}" alt="${escapeHtml(a.titulo)}" loading="lazy" />` : ""}
             <div class="cuerpo">
               <h3>${escapeHtml(a.titulo)}</h3>
-              <div class="nota">${escapeHtml(fmtFecha(a.fecha_hora))}</div>
-              ${a.descripcion ? `<p class="nota">${escapeHtml(a.descripcion)}</p>` : ""}
-              <div class="precio">${money(a.precio)}</div>
+              <time class="activity-date" datetime="${escapeHtml(a.fecha_hora)}">${escapeHtml(fmtFecha(a.fecha_hora))}</time>
+              ${a.descripcion ? `<div class="activity-description"><p id="description-${escapeHtml(a.id)}" class="activity-description-text">${escapeHtml(a.descripcion)}</p>${a.descripcion.length > 220 ? `<button class="activity-description-toggle" type="button" aria-expanded="false" aria-controls="description-${escapeHtml(a.id)}">Leer descripción completa <span aria-hidden="true">+</span></button>` : ""}</div>` : ""}
+              <div class="activity-booking-info"><div class="precio"><span>Por persona</span>${money(a.precio)}</div>
               <div class="cupos ${a.agotado ? "agotados" : "quedan"}">
                 ${a.agotado ? "Cupos agotados" : `${escapeHtml(a.cupos_disponibles)} cupos disponibles`}
-              </div>
+              </div></div>
               ${a.agotado ? "" : `
-                <button class="btn btn-sec btn-apartar" type="button">Reservar mi cupo</button>
+                <button class="btn btn-apartar" aria-expanded="false" type="button">Reservar mi cupo</button>
                 <form class="mini-form hidden">
                   <input name="nombre" aria-label="Nombre completo" required maxlength="120" placeholder="Nombre completo" />
                   <input name="whatsapp" aria-label="WhatsApp" type="tel" required maxlength="30" placeholder="WhatsApp" />
@@ -319,10 +319,26 @@ const WHATSAPP = "51904774329";
           </article>`).join("");
 
         carrusel.querySelectorAll(".actividad").forEach((card) => {
+          const descriptionToggle = card.querySelector(".activity-description-toggle");
+          descriptionToggle?.addEventListener("click", () => {
+            const expanded = descriptionToggle.getAttribute("aria-expanded") !== "true";
+            descriptionToggle.setAttribute("aria-expanded", String(expanded));
+            card.querySelector(".activity-description-text").classList.toggle("expanded", expanded);
+            descriptionToggle.innerHTML = expanded ? 'Ver menos <span aria-hidden="true">−</span>' : 'Leer descripción completa <span aria-hidden="true">+</span>';
+          });
           const btn = card.querySelector(".btn-apartar");
           if (!btn) return;
           const form = card.querySelector(".mini-form");
-          btn.addEventListener("click", () => form.classList.toggle("hidden"));
+          btn.addEventListener("click", () => {
+            const opening = form.classList.contains("hidden");
+            form.classList.toggle("hidden");
+            btn.setAttribute("aria-expanded", String(opening));
+            btn.textContent = opening ? "Cerrar formulario" : "Reservar mi cupo";
+            if (opening) {
+              if (!matchMedia("(prefers-reduced-motion: reduce)").matches) form.animate([{ opacity: 0, transform: "translateY(-8px)" }, { opacity: 1, transform: "translateY(0)" }], { duration: 240, easing: "ease-out" });
+              form.querySelector("input").focus({ preventScroll: true });
+            }
+          });
           form.addEventListener("submit", async (e) => {
             e.preventDefault();
             if (form.dataset.submitting === "true") return;
