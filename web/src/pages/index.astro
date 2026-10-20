@@ -174,10 +174,8 @@ const WHATSAPP = "51904774329";
     </section>
 
     <section id="galeria" class="photo-gallery section-space hidden" aria-labelledby="gallery-title">
-      <div class="wrap photo-gallery-heading"><h2 id="gallery-title">Nuestra<br /><em>galería.</em></h2><p>Una mirada a nuestro espacio y a lo que compartimos.</p>
-        <div class="gallery-navigation"><button class="btn btn-sec" type="button" id="gallery-previous" aria-label="Ver fotografías anteriores">←</button><button class="btn btn-sec" type="button" id="gallery-next" aria-label="Ver siguientes fotografías">→</button></div>
-      </div>
-      <div id="photo-gallery-track" class="photo-gallery-track" tabindex="0" role="region" aria-label="Fotografías de Inspirarte"></div>
+      <div class="photo-gallery-heading"><h2 id="gallery-title">Galería</h2><button type="button" id="gallery-pause" aria-pressed="false" aria-label="Pausar movimiento de la galería">Pausar</button></div>
+      <div id="photo-gallery-track" class="photo-gallery-track" tabindex="0" role="region" aria-label="Fotografías de Inspirarte; el movimiento se pausa al colocar el cursor o enfocar la galería"></div>
     </section>
 
     <section id="instagram" class="instagram-section section-space" aria-labelledby="instagram-title">
@@ -316,11 +314,32 @@ const WHATSAPP = "51904774329";
         const photos = await response.json();
         if (!photos.length) return;
         const track = document.getElementById("photo-gallery-track");
-        track.innerHTML = photos.map(photo => `<figure><img src="${escapeHtml(api + photo.imagen_url)}" alt="${escapeHtml(photo.descripcion)}" loading="lazy" decoding="async" />${photo.descripcion ? `<figcaption>${escapeHtml(photo.descripcion)}</figcaption>` : ""}</figure>`).join("");
-        document.getElementById("galeria").classList.remove("hidden");
-        const move = direction => track.scrollBy({left:direction * track.clientWidth * .8,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
-        document.getElementById("gallery-previous").addEventListener("click",()=>move(-1));
-        document.getElementById("gallery-next").addEventListener("click",()=>move(1));
+        const section = document.getElementById("galeria");
+        section.classList.remove("hidden");
+        const photoMarkup = photo => `<figure><img src="${escapeHtml(api + photo.imagen_url)}" alt="${escapeHtml(photo.descripcion)}" loading="lazy" decoding="async" /></figure>`;
+        const unique = photos.map(photoMarkup).join("");
+        const repetitions = Math.max(1, Math.ceil((Math.max(window.innerWidth, window.screen.width, 2560) + 400) / (photos.length * 220)));
+        const filled = unique + Array.from({length: repetitions - 1}, () => `<div class="gallery-fill" aria-hidden="true">${unique}</div>`).join("");
+        track.innerHTML = `<div class="gallery-marquee"><div class="gallery-marquee-set">${filled}</div><div class="gallery-marquee-set gallery-copy" aria-hidden="true">${filled}</div></div>`;
+        const marquee = track.querySelector(".gallery-marquee");
+        const set = track.querySelector(".gallery-marquee-set");
+        const resize = new ResizeObserver(() => marquee.style.setProperty("--gallery-duration", `${set.getBoundingClientRect().width / 28}s`));
+        resize.observe(set);
+        let visible = false;
+        let paused = false;
+        const sync = () => marquee.classList.toggle("is-paused", paused || !visible || document.hidden);
+        const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; sync(); }, {threshold: 0});
+        observer.observe(section);
+        document.addEventListener("visibilitychange", sync);
+        const pause = document.getElementById("gallery-pause");
+        pause.addEventListener("click", () => {
+          paused = !paused;
+          pause.textContent = paused ? "Reanudar" : "Pausar";
+          pause.setAttribute("aria-pressed", String(paused));
+          pause.setAttribute("aria-label", `${paused ? "Reanudar" : "Pausar"} movimiento de la galería`);
+          sync();
+        });
+        sync();
       } catch { /* La galería opcional no bloquea las reservas. */ }
     }
     cargarGaleria();
