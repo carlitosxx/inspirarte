@@ -46,6 +46,7 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
         <div class="tabs">
           <button class="tab activo" data-tab="reservas">Reservas de mesa</button>
           <button class="tab" data-tab="actividades">Actividades del mes</button>
+          <button class="tab" data-tab="whatsapp">Mensaje de WhatsApp</button>
         </div>
 
         <div id="tab-reservas">
@@ -53,7 +54,7 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
           <div class="card" style="overflow-x: auto;">
             <table class="admin" id="tabla-reservas">
               <thead>
-                <tr><th>Fecha</th><th>Hora</th><th>Nombre</th><th>WhatsApp</th><th>Pers.</th><th>Ubicación</th><th>Motivo</th><th>Estado</th></tr>
+                <tr><th>Fecha</th><th>Hora</th><th>Nombre</th><th>WhatsApp</th><th>Pers.</th><th>Ubicación</th><th>Motivo</th><th>Estado</th><th>Contacto</th></tr>
               </thead>
               <tbody></tbody>
             </table>
@@ -112,6 +113,32 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
             </table>
           </div>
         </div>
+
+        <div id="tab-whatsapp" class="hidden">
+          <div class="whatsapp-settings">
+            <div class="whatsapp-editor card">
+              <h2>Un mensaje con tu voz.</h2>
+              <p>Escribe el texto que abrirá WhatsApp desde cada reserva. Combina tus palabras con variables que toman los datos de esa persona.</p>
+              <form id="form-whatsapp" class="campo-grupo">
+                <label for="whatsapp-template">Mensaje para confirmar reservas</label>
+                <textarea id="whatsapp-template" rows="8" maxlength="2000" required aria-describedby="whatsapp-help" placeholder="Hola {nombre}, queremos confirmar tu reserva..."></textarea>
+                <p id="whatsapp-help" class="nota">Pulsa una variable para insertarla donde esté el cursor. Puedes quitar, repetir o mover cualquier dato. El botón de cada reserva usará el último mensaje guardado.</p>
+                <div id="whatsapp-fields" class="whatsapp-fields" aria-label="Variables disponibles"></div>
+                <div class="whatsapp-save-row">
+                  <button class="btn" type="submit" id="btn-guardar-whatsapp">Guardar mensaje</button>
+                  <span id="whatsapp-dirty" class="nota hidden">Tienes cambios sin guardar</span>
+                </div>
+                <div id="msg-whatsapp" role="status" aria-live="polite"></div>
+              </form>
+            </div>
+            <aside class="whatsapp-preview" aria-label="Vista previa del mensaje">
+              <h3>Así se verá</h3>
+              <p id="whatsapp-preview-source" class="nota">Vista previa</p>
+              <div id="whatsapp-preview-text" class="whatsapp-bubble">Carga una reserva para ver el mensaje.</div>
+              <p class="nota">El texto se abre listo para enviar; tú decides cuándo enviarlo.</p>
+            </aside>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -122,6 +149,11 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
     const authHeaders = () => ({ "Content-Type": "application/json", "Authorization": "Bearer " + token() });
     const ubicacionTxt = { salon: "Salón", mampara: "Mampara", barra: "Barra" };
     const motivoTxt = { cafeteria: "Cafetería", cumpleanos: "Cumpleaños", aniversario: "Aniversario", reunion: "Reunión", experiencia: "Experiencia", otro: "Otro" };
+    const whatsappFields = [
+      ["nombre", "Nombre"], ["fecha", "Día"], ["hora", "Hora"], ["personas", "Personas"], ["duracion", "Duración"],
+      ["ubicacion", "Ubicación"], ["motivo", "Motivo"], ["motivo_detalle", "Detalle del motivo"],
+      ["estado", "Estado"], ["whatsapp", "Número"], ["id", "Código"], ["creada_el", "Fecha de solicitud"],
+    ];
     const money = (n) => "S/ " + Number(n).toFixed(2);
     const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
@@ -159,6 +191,7 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
         mostrarPanel(true);
         cargarReservas();
         cargarActividades();
+        cargarPlantilla();
       } catch (err) {
         mostrarAviso(msg, "error", err.message);
       }
@@ -176,18 +209,127 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
         t.classList.add("activo");
         document.getElementById("tab-reservas").classList.toggle("hidden", t.dataset.tab !== "reservas");
         document.getElementById("tab-actividades").classList.toggle("hidden", t.dataset.tab !== "actividades");
+        document.getElementById("tab-whatsapp").classList.toggle("hidden", t.dataset.tab !== "whatsapp");
       });
     });
 
     // ---- Reservas ----
+    let reservasCache = [];
+    let savedWhatsAppTemplate = null;
+    const whatsappEditor = document.getElementById("whatsapp-template");
+    const whatsappFieldsBox = document.getElementById("whatsapp-fields");
+    const formatFecha = (fecha) => {
+      const [year, month, day] = String(fecha || "").split("-").map(Number);
+      if (!year || !month || !day) return String(fecha || "");
+      return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+    };
+    const templateData = (x) => ({
+      nombre: x.nombre, whatsapp: x.whatsapp, fecha: formatFecha(x.fecha), hora: String(x.hora || "").slice(0, 5),
+      personas: x.personas, duracion: x.duracion_min ? `${Math.floor(x.duracion_min / 60)} h ${String(x.duracion_min % 60).padStart(2, "0")} min` : "",
+      ubicacion: ubicacionTxt[x.ubicacion] || x.ubicacion,
+      motivo: motivoTxt[x.motivo] || x.motivo, motivo_detalle: x.motivo_detalle || "",
+      estado: x.estado, id: x.id,
+      creada_el: x.created_at ? new Date(x.created_at).toLocaleString("es-PE", { timeZone: "America/Lima", dateStyle: "long", timeStyle: "short" }) : "",
+    });
+    const renderWhatsAppMessage = (template, x) => {
+      const data = templateData(x);
+      return template.replace(/\{([a-z_]+)\}/g, (match, key) => Object.hasOwn(data, key) ? String(data[key] ?? "") : match);
+    };
+    const whatsappNumber = (value) => {
+      const raw = String(value || "").trim();
+      if (!/^\+?[\d\s().-]+$/.test(raw)) return "";
+      let digits = raw.replace(/\D/g, "");
+      if (digits.startsWith("00")) digits = digits.slice(2);
+      if (/^9\d{8}$/.test(digits)) digits = "51" + digits;
+      return /^\d{8,15}$/.test(digits) ? digits : "";
+    };
+    const whatsappLink = (x) => {
+      const number = whatsappNumber(x.whatsapp);
+      if (!number || savedWhatsAppTemplate === null) return "";
+      return `https://wa.me/${number}?text=${encodeURIComponent(renderWhatsAppMessage(savedWhatsAppTemplate, x))}`;
+    };
+
+    function actualizarVistaPrevia() {
+      const source = document.getElementById("whatsapp-preview-source");
+      const preview = document.getElementById("whatsapp-preview-text");
+      const reservation = reservasCache[0];
+      source.textContent = reservation ? `Vista previa con la reserva de ${reservation.nombre}` : "Vista previa";
+      preview.textContent = reservation ? renderWhatsAppMessage(whatsappEditor.value, reservation) : "Cuando llegue una reserva, aquí verás el mensaje con sus datos.";
+      document.getElementById("whatsapp-dirty").classList.toggle("hidden", whatsappEditor.value.trim() === savedWhatsAppTemplate);
+    }
+
+    whatsappFields.forEach(([key, label]) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "whatsapp-field";
+      button.textContent = `${label} · {${key}}`;
+      button.setAttribute("aria-label", `Insertar ${label}`);
+      button.addEventListener("click", () => {
+        const start = whatsappEditor.selectionStart;
+        const end = whatsappEditor.selectionEnd;
+        const token = `{${key}}`;
+        whatsappEditor.setRangeText(token, start, end, "end");
+        whatsappEditor.focus();
+        actualizarVistaPrevia();
+      });
+      whatsappFieldsBox.append(button);
+    });
+    whatsappEditor.addEventListener("input", actualizarVistaPrevia);
+
+    async function cargarPlantilla() {
+      const msg = document.getElementById("msg-whatsapp");
+      try {
+        const r = await fetch(api + "/api/admin/whatsapp-template", { headers: authHeaders() });
+        if (r.status === 401) return mostrarPanel(false);
+        if (!r.ok) throw new Error("No se pudo cargar el mensaje. Recarga el panel para intentarlo.");
+        const result = await r.json();
+        savedWhatsAppTemplate = result.template;
+        whatsappEditor.value = result.template;
+        actualizarVistaPrevia();
+        renderReservas();
+      } catch (err) {
+        mostrarAviso(msg, "error", err.message);
+      }
+    }
+
+    document.getElementById("form-whatsapp").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById("msg-whatsapp");
+      const button = document.getElementById("btn-guardar-whatsapp");
+      button.disabled = true;
+      try {
+        const r = await fetch(api + "/api/admin/whatsapp-template", {
+          method: "PUT", headers: authHeaders(), body: JSON.stringify({ template: whatsappEditor.value }),
+        });
+        const result = await r.json();
+        if (!r.ok) throw new Error(result.error || "No se pudo guardar el mensaje");
+        savedWhatsAppTemplate = result.template;
+        whatsappEditor.value = result.template;
+        actualizarVistaPrevia();
+        renderReservas();
+        mostrarAviso(msg, "ok", "Mensaje guardado. Los botones de las reservas ya usan esta versión.");
+      } catch (err) {
+        mostrarAviso(msg, "error", err.message);
+      } finally {
+        button.disabled = false;
+      }
+    });
+
     async function cargarReservas() {
       const tb = document.querySelector("#tabla-reservas tbody");
       const msg = document.getElementById("msg-reservas");
       const r = await fetch(api + "/api/admin/reservations", { headers: authHeaders() });
       if (r.status === 401) return mostrarPanel(false);
       if (!r.ok) return mostrarAviso(msg, "error", "No pudimos cargar las reservas. Recarga el panel para intentarlo otra vez.");
-      const list = await r.json();
-      tb.innerHTML = list.map((x) => `
+      reservasCache = await r.json();
+      renderReservas();
+      actualizarVistaPrevia();
+    }
+
+    function renderReservas() {
+      const tb = document.querySelector("#tabla-reservas tbody");
+      const msg = document.getElementById("msg-reservas");
+      tb.innerHTML = reservasCache.map((x) => `
         <tr>
           <td>${escapeHtml(x.fecha)}</td><td>${escapeHtml(x.hora.slice(0, 5))}</td>
           <td>${escapeHtml(x.nombre)}</td><td>${escapeHtml(x.whatsapp)}</td><td>${escapeHtml(x.personas)}</td>
@@ -198,7 +340,8 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
               ${["pendiente", "confirmada", "cancelada", "liberada"].map((e) => `<option ${e === x.estado ? "selected" : ""}>${e}</option>`).join("")}
             </select>
           </td>
-        </tr>`).join("") || `<tr><td colspan="8" class="nota">Sin reservas todavía.</td></tr>`;
+          <td>${whatsappLink(x) ? `<a class="btn-whatsapp" href="${escapeHtml(whatsappLink(x))}" target="_blank" rel="noopener noreferrer" aria-label="Escribir por WhatsApp a ${escapeHtml(x.nombre)}">Escribir</a>` : `<span class="nota">${savedWhatsAppTemplate === null ? "Cargando…" : "Número inválido"}</span>`}</td>
+        </tr>`).join("") || `<tr><td colspan="9" class="nota">Sin reservas todavía.</td></tr>`;
       tb.querySelectorAll(".estado-sel").forEach((s) => {
         s.addEventListener("change", async () => {
           const anterior = s.dataset.saved;
@@ -211,6 +354,10 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
             });
             if (!respuesta.ok) throw new Error("No se pudo actualizar el estado");
             s.dataset.saved = s.value;
+            const reserva = reservasCache.find((x) => x.id === s.dataset.id);
+            if (reserva) reserva.estado = s.value;
+            renderReservas();
+            actualizarVistaPrevia();
             mostrarAviso(msg, "ok", "Estado de la reserva actualizado.");
           } catch {
             s.value = anterior;
@@ -304,6 +451,7 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
       mostrarPanel(true);
       cargarReservas();
       cargarActividades();
+      cargarPlantilla();
     }
   </script>
 </Layout>

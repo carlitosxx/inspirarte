@@ -51,6 +51,8 @@ func main() {
 			r.Use(h.RequireAdmin)
 			r.Get("/admin/reservations", h.AdminListReservations)
 			r.Patch("/admin/reservations/{id}", h.AdminUpdateReservation)
+			r.Get("/admin/whatsapp-template", h.AdminGetWhatsAppTemplate)
+			r.Put("/admin/whatsapp-template", h.AdminSaveWhatsAppTemplate)
 			r.Get("/admin/activities", h.AdminListActivities)
 			r.Post("/admin/activities", h.AdminCreateActivity)
 			r.Patch("/admin/activities/{id}", h.AdminUpdateActivity)
@@ -65,7 +67,7 @@ func main() {
 func cors(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)

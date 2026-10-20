@@ -25,8 +25,8 @@ const (
 )
 
 type Handler struct {
-	DB           *sql.DB
-	Cfg          config.Config
+	DB            *sql.DB
+	Cfg           config.Config
 	AdminPassHash []byte
 }
 
@@ -83,7 +83,7 @@ func scanActivity(row interface{ Scan(...any) error }) (Activity, error) {
 const activityCols = `id::text, titulo, descripcion, imagen_url, fecha_hora, precio, cupos_totales, cupos_disponibles`
 
 func (h *Handler) ListActivities(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.DB.Query(`SELECT `+activityCols+` FROM activities WHERE activa = TRUE AND fecha_hora > now() ORDER BY fecha_hora ASC`)
+	rows, err := h.DB.Query(`SELECT ` + activityCols + ` FROM activities WHERE activa = TRUE AND fecha_hora > now() ORDER BY fecha_hora ASC`)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "No se pudieron cargar las actividades")
 		return
@@ -348,22 +348,23 @@ func (h *Handler) RequireAdmin(next http.Handler) http.Handler {
 // ---------------------------------------------------------------------------
 
 type Reservation struct {
-	ID           string `json:"id"`
-	Nombre       string `json:"nombre"`
-	Whatsapp     string `json:"whatsapp"`
-	Fecha        string `json:"fecha"`
-	Hora         string `json:"hora"`
-	Personas     int    `json:"personas"`
-	Ubicacion    string `json:"ubicacion"`
-	Motivo       string `json:"motivo"`
+	ID            string `json:"id"`
+	Nombre        string `json:"nombre"`
+	Whatsapp      string `json:"whatsapp"`
+	Fecha         string `json:"fecha"`
+	Hora          string `json:"hora"`
+	Personas      int    `json:"personas"`
+	DuracionMin   int    `json:"duracion_min"`
+	Ubicacion     string `json:"ubicacion"`
+	Motivo        string `json:"motivo"`
 	MotivoDetalle string `json:"motivo_detalle,omitempty"`
-	Estado       string `json:"estado"`
-	CreatedAt    string `json:"created_at"`
+	Estado        string `json:"estado"`
+	CreatedAt     string `json:"created_at"`
 }
 
 func (h *Handler) AdminListReservations(w http.ResponseWriter, r *http.Request) {
 	rows, err := h.DB.Query(
-		`SELECT id::text, nombre, whatsapp, fecha::text, hora::text, personas, ubicacion, motivo,
+		`SELECT id::text, nombre, whatsapp, fecha::text, hora::text, personas, duracion_min, ubicacion, motivo,
 		        COALESCE(motivo_detalle,''), estado, created_at
 		 FROM reservations ORDER BY fecha DESC, hora DESC LIMIT 500`)
 	if err != nil {
@@ -375,7 +376,7 @@ func (h *Handler) AdminListReservations(w http.ResponseWriter, r *http.Request) 
 	for rows.Next() {
 		var x Reservation
 		var created time.Time
-		if err := rows.Scan(&x.ID, &x.Nombre, &x.Whatsapp, &x.Fecha, &x.Hora, &x.Personas,
+		if err := rows.Scan(&x.ID, &x.Nombre, &x.Whatsapp, &x.Fecha, &x.Hora, &x.Personas, &x.DuracionMin,
 			&x.Ubicacion, &x.Motivo, &x.MotivoDetalle, &x.Estado, &created); err != nil {
 			writeError(w, http.StatusInternalServerError, "Error leyendo reservas")
 			return
@@ -412,12 +413,78 @@ func (h *Handler) AdminUpdateReservation(w http.ResponseWriter, r *http.Request)
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 }
 
+const defaultWhatsAppTemplate = "Hola {nombre}, te escribimos de Inspirarte Espacio para confirmar tu reserva del {fecha} a las {hora} para {personas} personas en {ubicacion}. Motivo: {motivo}. ¿Nos confirmas tu asistencia? 💜"
+
+var whatsappTemplateFields = map[string]bool{
+	"nombre": true, "whatsapp": true, "fecha": true, "hora": true, "duracion": true,
+	"personas": true, "ubicacion": true, "motivo": true,
+	"motivo_detalle": true, "estado": true, "id": true, "creada_el": true,
+}
+
+func validateWhatsAppTemplate(template string) string {
+	if template == "" || len([]rune(template)) > 2000 {
+		return "Escribe un mensaje de hasta 2000 caracteres"
+	}
+	for rest := template; rest != ""; {
+		open := strings.IndexByte(rest, '{')
+		close := strings.IndexByte(rest, '}')
+		if close >= 0 && (open < 0 || close < open) {
+			return "Hay una llave de cierre sin variable"
+		}
+		if open < 0 {
+			break
+		}
+		if close < 0 {
+			return "Hay una variable sin cerrar"
+		}
+		field := rest[open+1 : close]
+		if !whatsappTemplateFields[field] {
+			return "Variable no disponible: {" + field + "}"
+		}
+		rest = rest[close+1:]
+	}
+	return ""
+}
+
+func (h *Handler) AdminGetWhatsAppTemplate(w http.ResponseWriter, r *http.Request) {
+	var template string
+	err := h.DB.QueryRow(`SELECT value FROM admin_settings WHERE key = 'whatsapp_reservation_template'`).Scan(&template)
+	if err == sql.ErrNoRows {
+		template = defaultWhatsAppTemplate
+	} else if err != nil {
+		writeError(w, http.StatusInternalServerError, "No se pudo cargar el mensaje de WhatsApp")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"template": template})
+}
+
+func (h *Handler) AdminSaveWhatsAppTemplate(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Template string `json:"template"`
+	}
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 8192)).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "Mensaje inválido o demasiado largo")
+		return
+	}
+	req.Template = strings.TrimSpace(req.Template)
+	if validationError := validateWhatsAppTemplate(req.Template); validationError != "" {
+		writeError(w, http.StatusUnprocessableEntity, validationError)
+		return
+	}
+	if _, err := h.DB.Exec(`INSERT INTO admin_settings (key, value) VALUES ('whatsapp_reservation_template', $1)
+		ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`, req.Template); err != nil {
+		writeError(w, http.StatusInternalServerError, "No se pudo guardar el mensaje")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"template": req.Template})
+}
+
 // ---------------------------------------------------------------------------
 // Admin: actividades (CRUD)
 // ---------------------------------------------------------------------------
 
 func (h *Handler) AdminListActivities(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.DB.Query(`SELECT `+activityCols+`, activa FROM activities ORDER BY fecha_hora DESC`)
+	rows, err := h.DB.Query(`SELECT ` + activityCols + `, activa FROM activities ORDER BY fecha_hora DESC`)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "No se pudieron cargar las actividades")
 		return
