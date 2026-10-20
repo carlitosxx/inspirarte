@@ -43,6 +43,7 @@ func main() {
 	r.Route("/api", func(r chi.Router) {
 		// Público
 		r.Get("/activities", h.ListActivities)
+		r.Get("/gallery", h.ListGallery)
 		r.Post("/activities/{id}/book", h.BookActivity)
 		r.Post("/reservations", h.CreateReservation)
 
@@ -56,6 +57,10 @@ func main() {
 			r.Patch("/admin/activity-bookings/{id}", h.AdminUpdateActivityBooking)
 			r.Get("/admin/whatsapp-template", h.AdminGetWhatsAppTemplate)
 			r.Put("/admin/whatsapp-template", h.AdminSaveWhatsAppTemplate)
+			r.Get("/admin/gallery", h.AdminListGallery)
+			r.Post("/admin/gallery", h.AdminCreateGallery)
+			r.Patch("/admin/gallery/{id}", h.AdminUpdateGallery)
+			r.Post("/admin/gallery-images", h.AdminUploadGalleryImage)
 			r.Get("/admin/activities", h.AdminListActivities)
 			r.Post("/admin/activities", h.AdminCreateActivity)
 			r.Post("/admin/activity-images", h.AdminUploadActivityImage)

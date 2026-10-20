@@ -70,3 +70,16 @@
   .activity-crop-frame { max-width: 300px; margin-inline: auto; }
   .activity-image-current { align-items: start; }
 }
+
+.gallery-admin-form {margin-bottom:28px;}
+.gallery-admin-form > p {margin:16px 0 24px;max-width:65ch;}
+.gallery-admin-form form {max-width:680px;}
+.gallery-admin-form form .btn {justify-self:start;}
+.gallery-admin-list {display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:22px;}
+.gallery-admin-photo {display:grid;gap:16px;align-content:start;min-width:0;}
+.gallery-admin-photo img {width:100%;height:230px;object-fit:contain;background:var(--crema);border-radius:8px;}
+.gallery-admin-photo label {display:grid;gap:7px;}
+.gallery-admin-photo .gallery-visible {display:flex;align-items:center;gap:10px;}
+.gallery-visible input {width:auto;}
+
+.gallery-admin-form h2 {font-size:clamp(1.7rem,3vw,2.5rem);}

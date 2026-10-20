@@ -24,6 +24,14 @@ var activityImageName = regexp.MustCompile(`^[a-f0-9]{32}\.avif$`)
 
 // Only raster pixels with the exact output dimensions reach the encoder.
 func (h *Handler) AdminUploadActivityImage(w http.ResponseWriter, r *http.Request) {
+	h.uploadRasterImage(w, r, true)
+}
+
+func (h *Handler) AdminUploadGalleryImage(w http.ResponseWriter, r *http.Request) {
+	h.uploadRasterImage(w, r, false)
+}
+
+func (h *Handler) uploadRasterImage(w http.ResponseWriter, r *http.Request, exact bool) {
 	select {
 	case imageSlots <- struct{}{}:
 		defer func() { <-imageSlots }()
@@ -38,8 +46,8 @@ func (h *Handler) AdminUploadActivityImage(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	cfg, _, err := image.DecodeConfig(bytes.NewReader(data))
-	if err != nil || cfg.Width != 1080 || cfg.Height != 1350 {
-		writeError(w, http.StatusUnprocessableEntity, "Recorta la imagen a 1080 × 1350 antes de subirla")
+	if err != nil || cfg.Width < 1 || cfg.Height < 1 || cfg.Width > 2000 || cfg.Height > 2000 || (exact && (cfg.Width != 1080 || cfg.Height != 1350)) {
+		writeError(w, http.StatusUnprocessableEntity, "La imagen debe medir hasta 2000 × 2000; para actividades usa 1080 × 1350")
 		return
 	}
 	pixels, _, err := image.Decode(bytes.NewReader(data))
@@ -88,7 +96,7 @@ func (h *Handler) AdminUploadActivityImage(w http.ResponseWriter, r *http.Reques
 		writeError(w, http.StatusInternalServerError, "No se pudo guardar la imagen")
 		return
 	}
-	writeJSON(w, http.StatusCreated, map[string]any{"imagen_url": "/media/activities/" + name, "width": 1080, "height": 1350})
+	writeJSON(w, http.StatusCreated, map[string]any{"imagen_url": "/media/activities/" + name, "width": cfg.Width, "height": cfg.Height})
 }
 
 func (h *Handler) ActivityImage(w http.ResponseWriter, r *http.Request) {

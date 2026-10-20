@@ -59,3 +59,7 @@ En Coolify, configurar `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `JWT
 Dominios de producción: `https://inspirarteperu.com:80` y `https://www.inspirarteperu.com:80` para `web`, y `https://api.inspirarteperu.com:8080` para `backend`. En Coolify el puerto indica el destino interno del proxy; las URLs públicas usan HTTPS estándar. `PUBLIC_API_URL=https://api.inspirarteperu.com` se integra al compilar la web, por lo que cambiarla requiere reconstruirla.
 
 El despliegue automático requiere configurar el webhook de GitHub en Coolify.
+
+### Galería de fotografías
+
+En el dashboard, la pestaña **Galería** permite subir fotografías de hasta 20 MB, editar su descripción (texto alternativo), indicar el orden y ocultarlas o volver a publicarlas. El navegador conserva la proporción y reduce el lado mayor a 1600 px; la API convierte los píxeles a AVIF. Los archivos utilizan el volumen persistente de imágenes existente y los metadatos se guardan en `gallery_images` mediante la migración `003_gallery.sql`. La sección pública muestra una tira horizontal deslizable y aparece cuando existe al menos una foto visible. Ocultar una foto conserva su archivo y registro.
