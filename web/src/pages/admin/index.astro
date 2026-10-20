@@ -96,7 +96,8 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
               </div>
               <div>
                 <label for="act-desc">Descripción</label>
-                <textarea id="act-desc" rows="2" maxlength="500"></textarea>
+                <textarea id="act-desc" rows="4" maxlength="2000" aria-describedby="act-desc-count"></textarea>
+                <p id="act-desc-count" class="nota" aria-live="polite">0 / 2,000 caracteres</p>
               </div>
               <div class="fila fila-3">
                 <div>
@@ -535,6 +536,7 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
       document.getElementById("act-imagen").value = a.imagen_url || "";
       showActivityImage(a.imagen_url || "", "Imagen guardada de la actividad");
       document.getElementById("act-desc").value = a.descripcion || "";
+      updateActivityDescriptionCount();
       const d = new Date(a.fecha_hora);
       document.getElementById("act-fecha").value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
       document.getElementById("act-precio").value = a.precio;
@@ -543,10 +545,18 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
+    const activityDescription = document.getElementById("act-desc");
+    const activityDescriptionCount = document.getElementById("act-desc-count");
+    function updateActivityDescriptionCount() {
+      activityDescriptionCount.textContent = `${activityDescription.value.length.toLocaleString("es-PE")} / 2,000 caracteres`;
+    }
+    activityDescription.addEventListener("input", updateActivityDescriptionCount);
+
     document.getElementById("btn-limpiar-act").addEventListener("click", () => {
       if (activitySaving) return;
       resetActivityImage();
       document.getElementById("form-actividad").reset();
+      updateActivityDescriptionCount();
       document.getElementById("act-id").value = "";
       document.getElementById("form-act-titulo").textContent = "Nueva actividad";
     });
