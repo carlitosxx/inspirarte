@@ -327,7 +327,6 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
         galleryCache = await response.json();
         box.innerHTML = galleryCache.map((photo) => `<form class="card gallery-admin-photo" data-gallery-id="${escapeHtml(photo.id)}">
           <img src="${escapeHtml(api + photo.imagen_url)}" alt="${escapeHtml(photo.descripcion || "Fotografía de Inspirarte")}" loading="lazy" />
-          <label>Descripción (opcional)<input name="descripcion" maxlength="180" value="${escapeHtml(photo.descripcion)}" /></label>
           <label>Orden<input name="posicion" type="number" min="0" max="10000" required value="${escapeHtml(photo.posicion)}" /></label>
           <label class="gallery-visible"><input name="activa" type="checkbox" ${photo.activa ? "checked" : ""} /> Visible en la web</label>
           <button class="btn btn-sec" type="submit">Guardar cambios</button>
@@ -342,7 +341,7 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
           form.querySelectorAll("button").forEach(control => { control.disabled = true; });
           try {
             const photo = galleryCache.find((item) => item.id === form.dataset.galleryId);
-            const response = await fetch(api + "/api/admin/gallery/" + photo.id, {method:"PATCH", headers:authHeaders(), body:JSON.stringify({imagen_url:photo.imagen_url, descripcion:form.elements.descripcion.value.trim(), posicion:Number(form.elements.posicion.value), activa:form.elements.activa.checked})});
+            const response = await fetch(api + "/api/admin/gallery/" + photo.id, {method:"PATCH", headers:authHeaders(), body:JSON.stringify({imagen_url:photo.imagen_url, descripcion:photo.descripcion || "", posicion:Number(form.elements.posicion.value), activa:form.elements.activa.checked})});
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || "No se pudo guardar la foto");
             mostrarAviso(message,"ok","Cambios guardados.");
