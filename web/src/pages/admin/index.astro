@@ -45,6 +45,7 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
       <div id="panel" class="hidden">
         <div class="tabs">
           <button class="tab activo" data-tab="reservas">Reservas de mesa</button>
+          <button class="tab" data-tab="actividad-reservas">Reservas de actividades</button>
           <button class="tab" data-tab="actividades">Actividades del mes</button>
           <button class="tab" data-tab="whatsapp">Mensaje de WhatsApp</button>
         </div>
@@ -55,6 +56,30 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
             <table class="admin" id="tabla-reservas">
               <thead>
                 <tr><th>Fecha</th><th>Hora</th><th>Nombre</th><th>WhatsApp</th><th>Pers.</th><th>Ubicación</th><th>Motivo</th><th>Estado</th><th>Contacto</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="tab-actividad-reservas" class="hidden">
+          <div class="activity-bookings-heading">
+            <div>
+              <h2>Reservas para talleres y experiencias</h2>
+              <p>Controla las personas inscritas y los cupos de cada actividad. Cancelar devuelve los cupos al evento.</p>
+            </div>
+            <div class="activity-bookings-actions">
+              <label for="activity-booking-filter">Actividad</label>
+              <select id="activity-booking-filter"><option value="">Todas las actividades</option></select>
+              <button type="button" class="btn btn-sec" id="activity-booking-refresh">Actualizar</button>
+            </div>
+          </div>
+          <p id="activity-booking-summary" class="nota" aria-live="polite">Cargando reservas…</p>
+          <div id="msg-activity-bookings" role="status" aria-live="polite"></div>
+          <div class="card" style="overflow-x: auto;">
+            <table class="admin" id="tabla-activity-bookings">
+              <thead>
+                <tr><th>Actividad</th><th>Fecha del evento</th><th>Nombre</th><th>WhatsApp</th><th>Cupos</th><th>Estado</th><th>Contacto</th></tr>
               </thead>
               <tbody></tbody>
             </table>
@@ -227,13 +252,16 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
         document.querySelectorAll(".tab").forEach((x) => x.classList.remove("activo"));
         t.classList.add("activo");
         document.getElementById("tab-reservas").classList.toggle("hidden", t.dataset.tab !== "reservas");
+        document.getElementById("tab-actividad-reservas").classList.toggle("hidden", t.dataset.tab !== "actividad-reservas");
         document.getElementById("tab-actividades").classList.toggle("hidden", t.dataset.tab !== "actividades");
         document.getElementById("tab-whatsapp").classList.toggle("hidden", t.dataset.tab !== "whatsapp");
+        if (t.dataset.tab === "actividad-reservas") cargarReservasActividad();
       });
     });
 
     // ---- Reservas ----
     let reservasCache = [];
+    let activityBookingsCache = [];
     let savedWhatsAppTemplate = null;
     const whatsappEditor = document.getElementById("whatsapp-template");
     const whatsappFieldsBox = document.getElementById("whatsapp-fields");
@@ -344,6 +372,74 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
       renderReservas();
       actualizarVistaPrevia();
     }
+
+    async function cargarReservasActividad() {
+      const summary = document.getElementById("activity-booking-summary");
+      const msg = document.getElementById("msg-activity-bookings");
+      summary.textContent = "Cargando reservas…";
+      const r = await fetch(api + "/api/admin/activity-bookings", { headers: authHeaders() });
+      if (r.status === 401) return mostrarPanel(false);
+      if (!r.ok) {
+        summary.textContent = "";
+        return mostrarAviso(msg, "error", "No pudimos cargar las reservas de actividades. Inténtalo de nuevo.");
+      }
+      activityBookingsCache = await r.json();
+      renderReservasActividad();
+    }
+
+    const activityBookingFilter = document.getElementById("activity-booking-filter");
+    function renderReservasActividad() {
+      const tb = document.querySelector("#tabla-activity-bookings tbody");
+      const filter = activityBookingFilter.value;
+      const activities = new Map(activityBookingsCache.map((x) => [x.activity_id, x.titulo]));
+      const selectedActivity = filter;
+      activityBookingFilter.innerHTML = `<option value="">Todas las actividades</option>` +
+        Array.from(activities, ([id, title]) => `<option value="${escapeHtml(id)}">${escapeHtml(title)}</option>`).join("");
+      if (activities.has(selectedActivity)) activityBookingFilter.value = selectedActivity;
+
+      const visible = filter ? activityBookingsCache.filter((x) => x.activity_id === filter) : activityBookingsCache;
+      document.getElementById("activity-booking-summary").textContent = `${visible.length.toLocaleString("es-PE")} ${visible.length === 1 ? "reserva" : "reservas"} · ${visible.filter((x) => x.estado === "confirmada").reduce((total, x) => total + Number(x.cupos), 0).toLocaleString("es-PE")} cupos confirmados`;
+      tb.innerHTML = visible.map((x) => {
+        const date = new Date(x.fecha_hora);
+        const number = whatsappNumber(x.whatsapp);
+        const message = `Hola ${x.nombre}, te escribimos de Inspirarte para coordinar tu reserva de ${x.cupos} ${Number(x.cupos) === 1 ? "cupo" : "cupos"} en ${x.titulo} el ${date.toLocaleString("es-PE", { dateStyle: "long", timeStyle: "short" })}.`;
+        const contact = number ? `https://wa.me/${number}?text=${encodeURIComponent(message)}` : "";
+        return `<tr>
+          <td><strong>${escapeHtml(x.titulo)}</strong></td>
+          <td>${escapeHtml(date.toLocaleString("es-PE", { dateStyle: "medium", timeStyle: "short" }))}</td>
+          <td>${escapeHtml(x.nombre)}</td><td>${escapeHtml(x.whatsapp)}</td><td>${escapeHtml(x.cupos)}</td>
+          <td><select data-id="${escapeHtml(x.id)}" data-saved="${escapeHtml(x.estado)}" class="activity-booking-state" aria-label="Estado de reserva de ${escapeHtml(x.nombre)} para ${escapeHtml(x.titulo)}">
+            ${["confirmada", "cancelada"].map((state) => `<option value="${state}" ${state === x.estado ? "selected" : ""}>${state === "confirmada" ? "Confirmada" : "Cancelada"}</option>`).join("")}
+          </select></td>
+          <td>${contact ? `<a class="btn-whatsapp" href="${escapeHtml(contact)}" target="_blank" rel="noopener noreferrer" aria-label="Escribir a ${escapeHtml(x.nombre)} por su reserva de ${escapeHtml(x.titulo)}">Escribir</a>` : `<span class="nota">Número inválido</span>`}</td>
+        </tr>`;
+      }).join("") || `<tr><td colspan="7" class="nota">${filter ? "Esta actividad todavía no tiene reservas." : "Aún no hay reservas de actividades."}</td></tr>`;
+
+      tb.querySelectorAll(".activity-booking-state").forEach((select) => {
+        select.addEventListener("change", async () => {
+          const previous = select.dataset.saved;
+          select.disabled = true;
+          try {
+            const response = await fetch(api + "/api/admin/activity-bookings/" + select.dataset.id, {
+              method: "PATCH", headers: authHeaders(), body: JSON.stringify({ estado: select.value }),
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || "No se pudo actualizar la reserva");
+            const booking = activityBookingsCache.find((x) => x.id === select.dataset.id);
+            if (booking) booking.estado = select.value;
+            mostrarAviso(document.getElementById("msg-activity-bookings"), "ok", "Estado actualizado; los cupos del evento ya se ajustaron.");
+            await Promise.all([cargarReservasActividad(), cargarActividades()]);
+          } catch (error) {
+            select.value = previous;
+            mostrarAviso(document.getElementById("msg-activity-bookings"), "error", error.message || "No se pudo actualizar la reserva.");
+            select.disabled = false;
+          }
+        });
+      });
+    }
+
+    activityBookingFilter.addEventListener("change", renderReservasActividad);
+    document.getElementById("activity-booking-refresh").addEventListener("click", cargarReservasActividad);
 
     function renderReservas() {
       const tb = document.querySelector("#tabla-reservas tbody");

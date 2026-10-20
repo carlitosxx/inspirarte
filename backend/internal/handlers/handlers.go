@@ -413,6 +413,127 @@ func (h *Handler) AdminUpdateReservation(w http.ResponseWriter, r *http.Request)
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 }
 
+// ---------------------------------------------------------------------------
+// Admin: reservas de actividades
+// ---------------------------------------------------------------------------
+
+type ActivityBooking struct {
+	ID         string `json:"id"`
+	ActivityID string `json:"activity_id"`
+	Titulo     string `json:"titulo"`
+	FechaHora  string `json:"fecha_hora"`
+	Nombre     string `json:"nombre"`
+	Whatsapp   string `json:"whatsapp"`
+	Cupos      int    `json:"cupos"`
+	Estado     string `json:"estado"`
+	CreatedAt  string `json:"created_at"`
+}
+
+func (h *Handler) AdminListActivityBookings(w http.ResponseWriter, r *http.Request) {
+	rows, err := h.DB.Query(
+		`SELECT b.id::text, a.id::text, a.titulo, a.fecha_hora, b.nombre, b.whatsapp, b.cupos, b.estado, b.created_at
+		 FROM activity_bookings b
+		 JOIN activities a ON a.id = b.activity_id
+		 ORDER BY (a.fecha_hora < now()) ASC, a.fecha_hora ASC, b.created_at DESC LIMIT 1000`)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "No se pudieron cargar las reservas de actividades")
+		return
+	}
+	defer rows.Close()
+	list := []ActivityBooking{}
+	for rows.Next() {
+		var booking ActivityBooking
+		var fechaHora, createdAt time.Time
+		if err := rows.Scan(&booking.ID, &booking.ActivityID, &booking.Titulo, &fechaHora, &booking.Nombre,
+			&booking.Whatsapp, &booking.Cupos, &booking.Estado, &createdAt); err != nil {
+			writeError(w, http.StatusInternalServerError, "Error leyendo reservas de actividades")
+			return
+		}
+		booking.FechaHora = fechaHora.Format(time.RFC3339)
+		booking.CreatedAt = createdAt.Format(time.RFC3339)
+		list = append(list, booking)
+	}
+	if err := rows.Err(); err != nil {
+		writeError(w, http.StatusInternalServerError, "Error leyendo reservas de actividades")
+		return
+	}
+	writeJSON(w, http.StatusOK, list)
+}
+
+func (h *Handler) AdminUpdateActivityBooking(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	var req struct {
+		Estado string `json:"estado"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "Datos inválidos")
+		return
+	}
+	if req.Estado != "confirmada" && req.Estado != "cancelada" {
+		writeError(w, http.StatusUnprocessableEntity, "Estado inválido")
+		return
+	}
+
+	tx, err := h.DB.BeginTx(r.Context(), nil)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "No se pudo actualizar la reserva")
+		return
+	}
+	defer tx.Rollback()
+
+	var activityID, estado string
+	var cupos int
+	err = tx.QueryRow(`SELECT activity_id::text, cupos, estado FROM activity_bookings WHERE id=$1 FOR UPDATE`, id).
+		Scan(&activityID, &cupos, &estado)
+	if err == sql.ErrNoRows {
+		writeError(w, http.StatusNotFound, "Reserva de actividad no encontrada")
+		return
+	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "No se pudo leer la reserva")
+		return
+	}
+
+	if estado != req.Estado {
+		if estado == "confirmada" && req.Estado == "cancelada" {
+			if _, err = tx.Exec(`UPDATE activity_bookings SET estado=$1 WHERE id=$2`, req.Estado, id); err != nil {
+				writeError(w, http.StatusInternalServerError, "No se pudo actualizar la reserva")
+				return
+			}
+			_, err = tx.Exec(
+				`UPDATE activities SET cupos_disponibles = GREATEST(0, cupos_totales - (
+					SELECT COALESCE(SUM(cupos), 0) FROM activity_bookings WHERE activity_id=$1 AND estado='confirmada'
+				)) WHERE id=$1`, activityID)
+		} else {
+			var restantes int
+			err = tx.QueryRow(
+				`UPDATE activities SET cupos_disponibles = cupos_disponibles - $1
+				 WHERE id=$2 AND activa=TRUE AND fecha_hora > now() AND cupos_disponibles >= $1
+				 RETURNING cupos_disponibles`, cupos, activityID).Scan(&restantes)
+			if err == sql.ErrNoRows {
+				writeError(w, http.StatusConflict, "No hay cupos disponibles para reactivar esta reserva")
+				return
+			}
+			if err == nil {
+				_, err = tx.Exec(`UPDATE activity_bookings SET estado=$1 WHERE id=$2`, req.Estado, id)
+				if err != nil {
+					writeError(w, http.StatusInternalServerError, "No se pudo actualizar la reserva")
+					return
+				}
+			}
+		}
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, "No se pudieron actualizar los cupos")
+			return
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		writeError(w, http.StatusInternalServerError, "No se pudo confirmar el cambio")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+}
+
 const defaultWhatsAppTemplate = "Hola {nombre}, te escribimos de Inspirarte Espacio para confirmar tu reserva del {fecha} a las {hora} para {personas} personas en {ubicacion}. Motivo: {motivo}. ¿Nos confirmas tu asistencia? 💜"
 
 var whatsappTemplateFields = map[string]bool{

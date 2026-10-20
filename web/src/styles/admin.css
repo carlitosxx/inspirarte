@@ -16,6 +16,13 @@
 #panel h3 { margin-bottom: 20px; font-size: 1.7rem; }
 #panel .tab { transition: background .2s ease, color .2s ease; }
 #panel .tab:not(.activo):hover { border-color: var(--ciruela); }
+.activity-bookings-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin: 0 0 20px; }
+.activity-bookings-heading h2 { margin: 0 0 8px; font-size: clamp(1.7rem, 3vw, 2.5rem); }
+.activity-bookings-heading p { max-width: 62ch; margin: 0; color: var(--tinta-suave); }
+.activity-bookings-actions { display: flex; align-items: end; gap: 10px; flex-wrap: wrap; }
+.activity-bookings-actions label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+.activity-bookings-actions select { min-width: 210px; }
+#activity-booking-summary { margin: 0 0 12px; }
 .btn-whatsapp { display: inline-flex; align-items: center; min-height: 38px; padding: 8px 15px; border-radius: 100px; background: #dcece6; color: #174b3b; font-size: .88rem; font-weight: 700; text-decoration: none; white-space: nowrap; transition: background .2s ease, transform .2s ease; }
 .btn-whatsapp:hover { background: #c6e1d6; transform: translateY(-2px); }
 .btn-whatsapp:focus-visible, .whatsapp-field:focus-visible { outline: 2px solid var(--ciruela); outline-offset: 3px; }
@@ -38,6 +45,9 @@
   .admin-login { max-width: 540px; justify-self: start; }
   .whatsapp-settings { grid-template-columns: 1fr; }
   .whatsapp-preview { position: static; }
+  .activity-bookings-heading { align-items: stretch; flex-direction: column; }
+  .activity-bookings-actions { align-items: stretch; }
+  .activity-bookings-actions select { flex: 1; }
 }
 @media (max-width: 640px) {
   .admin-section { padding-top: 45px; }

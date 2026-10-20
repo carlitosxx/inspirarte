@@ -52,6 +52,8 @@ func main() {
 			r.Use(h.RequireAdmin)
 			r.Get("/admin/reservations", h.AdminListReservations)
 			r.Patch("/admin/reservations/{id}", h.AdminUpdateReservation)
+			r.Get("/admin/activity-bookings", h.AdminListActivityBookings)
+			r.Patch("/admin/activity-bookings/{id}", h.AdminUpdateActivityBooking)
 			r.Get("/admin/whatsapp-template", h.AdminGetWhatsAppTemplate)
 			r.Put("/admin/whatsapp-template", h.AdminSaveWhatsAppTemplate)
 			r.Get("/admin/activities", h.AdminListActivities)
