@@ -174,7 +174,7 @@ const WHATSAPP = "51904774329";
     </section>
 
     <section id="galeria" class="photo-gallery section-space hidden" aria-labelledby="gallery-title">
-      <div class="photo-gallery-heading"><h2 id="gallery-title">Galería</h2><button type="button" id="gallery-pause" aria-pressed="false" aria-label="Pausar movimiento de la galería">Pausar</button></div>
+      <div class="wrap photo-gallery-heading"><h2 id="gallery-title">Nuestra<br /><em>galería.</em></h2><p>Una mirada a nuestro espacio y a lo que compartimos.</p></div>
       <div id="photo-gallery-track" class="photo-gallery-track" tabindex="0" role="region" aria-label="Fotografías de Inspirarte; el movimiento se pausa al colocar el cursor o enfocar la galería"></div>
     </section>
 
@@ -326,19 +326,10 @@ const WHATSAPP = "51904774329";
         const resize = new ResizeObserver(() => marquee.style.setProperty("--gallery-duration", `${set.getBoundingClientRect().width / 28}s`));
         resize.observe(set);
         let visible = false;
-        let paused = false;
-        const sync = () => marquee.classList.toggle("is-paused", paused || !visible || document.hidden);
+        const sync = () => marquee.classList.toggle("is-paused", !visible || document.hidden);
         const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; sync(); }, {threshold: 0});
         observer.observe(section);
         document.addEventListener("visibilitychange", sync);
-        const pause = document.getElementById("gallery-pause");
-        pause.addEventListener("click", () => {
-          paused = !paused;
-          pause.textContent = paused ? "Reanudar" : "Pausar";
-          pause.setAttribute("aria-pressed", String(paused));
-          pause.setAttribute("aria-label", `${paused ? "Reanudar" : "Pausar"} movimiento de la galería`);
-          sync();
-        });
         sync();
       } catch { /* La galería opcional no bloquea las reservas. */ }
     }
