@@ -11,7 +11,7 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
       <a class="logo" href="/" aria-label="Inspirarte Espacio — inicio"><img src="/inspirarte-logo-web.svg" alt="Inspirarte Espacio" /></a>
       <div class="links">
         <a href="/">Ver web</a>
-        <button id="btn-salir" class="btn btn-sec hidden" style="padding: 10px 20px;">Salir</button>
+        <button id="admin-menu-toggle" class="admin-menu-toggle hidden" type="button" aria-label="Abrir menú del dashboard" aria-controls="admin-sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg></button>
       </div>
     </nav>
   </header>
@@ -43,13 +43,16 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
 
       <!-- PANEL -->
       <div id="panel" class="hidden">
-        <div class="tabs">
-          <button class="tab activo" data-tab="reservas">Reservas de mesa</button>
+        <button type="button" class="admin-menu-backdrop" id="admin-menu-backdrop" aria-label="Cerrar menú" tabindex="-1"></button>
+        <nav class="tabs admin-sidebar" id="admin-sidebar" aria-label="Menú del dashboard">
+          <div class="admin-menu-heading"><strong>Administración</strong><button id="admin-menu-close" type="button" aria-label="Cerrar menú"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div>
+          <button class="tab activo" aria-current="page" data-tab="reservas">Reservas de mesa</button>
           <button class="tab" data-tab="actividad-reservas">Reservas de actividades</button>
           <button class="tab" data-tab="actividades">Actividades del mes</button>
           <button class="tab" data-tab="galeria">Galería</button>
           <button class="tab" data-tab="whatsapp">Mensaje de WhatsApp</button>
-        </div>
+          <div class="admin-menu-footer"><a href="/">Ver la web <span aria-hidden="true">↗</span></a><button id="btn-salir" class="btn btn-sec hidden" type="button">Cerrar sesión</button></div>
+        </nav>
 
         <div id="tab-reservas">
           <div id="msg-reservas" role="status" aria-live="polite"></div>
@@ -229,10 +232,37 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
     const panel = document.getElementById("panel");
     const btnSalir = document.getElementById("btn-salir");
 
+    const menuToggle = document.getElementById("admin-menu-toggle");
+    const sidebar = document.getElementById("admin-sidebar");
+    function setAdminMenu(open, restoreFocus = false) {
+      document.body.classList.toggle("admin-menu-open", open);
+      menuToggle.setAttribute("aria-expanded", String(open));
+      menuToggle.setAttribute("aria-label", open ? "Cerrar menú del dashboard" : "Abrir menú del dashboard");
+      if (open) sidebar.querySelector(".activo").focus();
+      else if (restoreFocus) menuToggle.focus();
+    }
+    menuToggle.addEventListener("click", () => setAdminMenu(menuToggle.getAttribute("aria-expanded") !== "true"));
+    document.getElementById("admin-menu-close").addEventListener("click", () => setAdminMenu(false, true));
+    document.getElementById("admin-menu-backdrop").addEventListener("click", () => setAdminMenu(false, true));
+    document.addEventListener("keydown", (event) => {
+      if (!document.body.classList.contains("admin-menu-open")) return;
+      if (event.key === "Escape") setAdminMenu(false, true);
+      if (event.key === "Tab") {
+        const controls = [...sidebar.querySelectorAll("button,a")].filter(el => el.getClientRects().length);
+        const first = controls[0], last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
+    });
+    matchMedia("(max-width: 900px)").addEventListener("change", () => setAdminMenu(false));
+
     function mostrarPanel(on) {
       loginBox.classList.toggle("hidden", on);
       panel.classList.toggle("hidden", !on);
       btnSalir.classList.toggle("hidden", !on);
+      menuToggle.classList.toggle("hidden", !on);
+      document.querySelector(".admin-main").classList.toggle("is-authenticated", on);
+      if (!on) setAdminMenu(false);
     }
 
     document.getElementById("form-login").addEventListener("submit", async (e) => {
@@ -265,7 +295,8 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
     // Tabs
     document.querySelectorAll(".tab").forEach((t) => {
       t.addEventListener("click", () => {
-        document.querySelectorAll(".tab").forEach((x) => x.classList.remove("activo"));
+        document.querySelectorAll(".tab").forEach((x) => { x.classList.remove("activo"); x.removeAttribute("aria-current"); });
+        t.setAttribute("aria-current", "page");
         t.classList.add("activo");
         document.getElementById("tab-reservas").classList.toggle("hidden", t.dataset.tab !== "reservas");
         document.getElementById("tab-actividad-reservas").classList.toggle("hidden", t.dataset.tab !== "actividad-reservas");
@@ -274,6 +305,11 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:8080";
         if (t.dataset.tab === "galeria") cargarGaleriaAdmin();
         document.getElementById("tab-whatsapp").classList.toggle("hidden", t.dataset.tab !== "whatsapp");
         if (t.dataset.tab === "actividad-reservas") cargarReservasActividad();
+        setAdminMenu(false);
+        const content = document.getElementById("tab-" + t.dataset.tab);
+        content.setAttribute("tabindex", "-1");
+        content.focus({ preventScroll: true });
+        window.scrollTo({ top: 0, behavior: "instant" });
       });
     });
 
